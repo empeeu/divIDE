@@ -229,7 +229,7 @@ divImage = {
             var last_val = 0;
             var cdfmin = Infinity;
             var cdfmax = 0;
-            for (var i = 0; i < 255; i++){
+            for (var i = 0; i <= 255; i++){
                 if (histogram[i] == undefined){
                     continue;
                 }
@@ -244,7 +244,7 @@ divImage = {
                 eqData.push([]);
                 for (var j = 0; j < width; j++){
                     val = Math.round(data[i][j] / step);
-                    val = (cdf[val] - cdfmin) / (cdfmax - cdfmin) * 255;
+                    val = (cdf[val] - cdfmin) / (cdfmax - cdfmin) * (vmax - vmin) + vmin;
                     eqData[i].push(val);
                 }
             }
@@ -257,9 +257,13 @@ divImage = {
             newData.push([])
             for (var j = 0; j < width; j++){
                 var c = lut.getColor (eqData[i][j]);
-                newData[i].push([Math.round(c.r * 255),
-                                 Math.round(c.g * 255),
-                                 Math.round(c.b * 255)]);
+                if (c == undefined){
+                    newData[i].push([255, 255, 255]);
+                } else {
+                    newData[i].push([Math.round(c.r * 255),
+                                     Math.round(c.g * 255),
+                                     Math.round(c.b * 255)]);
+                }
             }
         }
         return newData;
