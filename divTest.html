@@ -1,20 +1,42 @@
 <html>
 <head>
 <style>
-div {
+.container {
+    flex: 1;
+    display: flex;
+}
+
+.column-items {
+    flex-direction: column;
+}
+
+.row-items {
+    flex-direction: row;
+}
+
+.border-style {
     border: gainsboro;
     border-width: thin;
     border-style: solid;
     padding: 10px;
+    margin: 10px;
     box-shadow: 2px 2px 2px #909090;
     border-radius: 5px;
-    //width: 100%;
-    //position: relative;
+}
+
+#main {
+    bottom: 0px;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    position: absolute;
+    display: flex;
 }
 
 #outer {
     position: relative;
-    padding: 0px;
+    width: 100%;
+    height: 100%;
 }
 
 .ctxMenu{
@@ -44,11 +66,11 @@ menu:hover > menu{
     display:block;
 }
 menu > menu{
-    display:block;
+    display:none;
     position:relative;
     top:-20px;
     left:100%;
-    width:120px;
+    width:140px;
 }
 menu[title]:before{
     content:attr(title);
@@ -60,7 +82,7 @@ menu:not([title]):before{
 </head>
 <body>
 <div id='outer'>
-<div id="main">
+<div id="main" class='border-style column-items'>
 main
 </div>
 </div>
@@ -82,7 +104,9 @@ function make_menu(elem, number){
         menu += '<menu title="Remove Container" onclick="removeContainer(this)"> \
         </menu>'
     }
-    menu += '<menu title="Split Horizontal" onclick="splitHorizontal()"> \
+    menu += '<menu title="Align"> \
+                 <menu title="Vertical"> </menu>  \
+                 <menu title="Horizontal"></menu> \
         </menu> \
     </menu>'
     elem.innerHTML += menu;
@@ -124,8 +148,9 @@ function removeContainer(elem){
 }
 function addContainer(elem){
     console.log('addContainer');
-    parentElem = elem.parentElement.parentElement
+    parentElem = elem.parentElement.parentElement;
     div = document.createElement('div');
+    div.className = 'container border-style row-items';
     parentElem.appendChild(div);
     div.id = NELEMENTS + 1;
     div.innerHTML = NELEMENTS + 1;
