@@ -105,8 +105,8 @@ function make_menu(elem, number){
         </menu>'
     }
     menu += '<menu title="Align"> \
-                 <menu title="Vertical"> </menu>  \
-                 <menu title="Horizontal"></menu> \
+                 <menu title="Vertical" onclick="alignVertical(this)"> </menu>  \
+                 <menu title="Horizontal" onclick="alignHorizontal(this)"></menu> \
         </menu> \
     </menu>'
     elem.innerHTML += menu;
@@ -159,6 +159,20 @@ function addContainer(elem){
     div.addEventListener("contextmenu", show_menu, false);
     div.addEventListener("click", clear_menu, false);
 }
+
+function alignVertical(melem){
+    elem = melem.parentElement.parentElement.parentElement;
+    console.log(elem);
+    elem.classList.remove("row-items")
+    elem.classList.add("column-items")
+}
+function alignHorizontal(melem){
+    elem = melem.parentElement.parentElement.parentElement;
+    console.log(elem);
+    elem.classList.remove("column-items")
+    elem.classList.add("row-items")
+}
+
 </script>
 
 </body>
