@@ -8,7 +8,7 @@
 
     <style>
     .menu-bar {
-        height:20px;
+        height:40px;
         background:lightgrey;
     }
 
@@ -98,16 +98,30 @@
     </style>
 </head>
 <body>
-    <script src='external/jquery-3.1.1.js' />
-    <script src="external/js/vendor/what-input.min.js"></script>
-    <script src="external/js/vendor/foundation.min.js"></script>
-
     <div id='outer'>
+
         <div id='top-menu' class='menu-bar'>
-            <menu title='top-menu'>
-                <menu title='file'></menu>
-                <menu title='edit layout'></menu>
-            </menu>
+            <ul class="dropdown menu" data-dropdown-menu>
+              <li>
+                <a>File</a>
+                <ul class="menu">
+                  <li><a href="#0">Open</a></li>
+                  <li>
+                    <a href='#0'> Recent</a>
+                    <ul class='menu'>
+                      <li><a href='#0'>Item 1 subA</a></li>
+                      <li><a href='#0'>Item 1 subB</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li> 
+                <a href='#0'> Edit </a>
+                <ul class="menu">
+                  <li><a href='#0'> Layout </a></li>
+                </ul>
+              </li>
+            </ul>
         </div>
             <div id="main" class='border-style column-items'>
             main
@@ -197,6 +211,12 @@
         }
 
     </script>
+    <script src="external/js/vendor/jquery.js"></script>
+    <script src="external/js/vendor/what-input.js"></script>
+    <script src="external/js/vendor/foundation.js"></script>
+    <script src="external/js/app.js"></script>
+    <!--     <script src='external/jquery-3.1.1.js' /> -->
+
 </body>
 </html>
 
