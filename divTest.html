@@ -10,11 +10,16 @@
     .menu-bar {
         height:40px;
         background:lightgrey;
+        box-shadow: 5px 5px 5px #909090;
     }
 
     .container {
         flex: 1;
         display: flex;
+    }
+
+    .content-block {
+        margin: 0  auto auto 0;
     }
 
     .column-items {
@@ -132,7 +137,6 @@
             </ul>
         </div>
             <div id="main" class='border-style column-items'>
-            main
             </div>
         <div id='status-bar' class='menu-bar'> 
         # ...
@@ -168,6 +172,32 @@
                 </menu> \
             </menu>'
             elem.innerHTML += menu;
+        }
+
+        function make_container_block(elem) {
+            elem.innerHTML += "\
+                <div class='content-block layout-block'><table><tbody> \
+                <tr>\
+                    <td>Width:</td> \
+                    <td><input type='number' min=0 max=2048 class='layout-width' value='1' onchange='boxWidthChange(this)'> \
+                    </input> </td> \
+                    <td> <select class='unit' onchange='boxWidthChange(this)'> \
+                          <option value='flex'>flex</option> \
+                          <option value='px'>px</option> \
+                         </select> \
+                    </td> \
+                </tr> \
+                <tr>\
+                    <td>Height:</td> \
+                    <td><input type='number' min=0 max=2048 class='layout-width' value='1' onchange='boxHeightChange(this)'> \
+                    </input> </td> \
+                    <td> <select class='unit' onchange='boxHeightChange(this)'> \
+                          <option value='flex'>flex</option> \
+                          <option value='px'>px</option> \
+                         </select> \
+                    </td> \
+                </tr> \
+                </tbody></table></div>"
         }
 
         function show_menu(event){
@@ -207,9 +237,10 @@
             div.className = 'container edit-border-style row-items';
             parentElem.appendChild(div);
             div.id = NELEMENTS + 1;
-            div.innerHTML = NELEMENTS + 1;
+//             div.innerHTML = NELEMENTS + 1;
             NELEMENTS += 1;
             make_menu(div, div.id);
+            make_container_block(div);
             div.addEventListener("contextmenu", show_menu, false);
             div.addEventListener("click", clear_menu, false);
         }
@@ -225,6 +256,35 @@
             elem.classList.add("row-items")
         }
 
+        // Function for layout box
+        function boxSizeChange(melem, wh){
+            var elem = $(melem).closest('div').parent();
+            var tr = $(melem).closest('tr');
+            var unit = $(tr).find('select')[0].value;
+            var size = $(tr).find('input')[0].value;
+            if (unit == 'flex'){
+                elem.css('flex', size);
+                elem.css('max-' + wh, '');
+                inputs = elem.find('input');
+                for (var i = 0; i < inputs.length; i++){
+                    var u = $(inputs[i]).closest('tr').find('select')[0].value;
+                    if (u == 'flex'){
+                        inputs[i].value = size;
+                    }
+                }
+            } else if (unit == 'px') {
+                elem.css('flex', '');
+                elem.css('max-'+ wh, size + unit);
+            }
+        }
+
+        function boxWidthChange(melem){
+            boxSizeChange(melem, 'width');
+        }
+        function boxHeightChange(melem){
+            boxSizeChange(melem, 'height');
+        }
+
         // JQuery Magic
         $(document).ready(function(){
             $('#tm-layout').click(function() {
@@ -235,12 +295,14 @@
                 $('.container').removeClass("edit-border-style");
                 $('#main').removeClass("edit-border-style");
                 $(this).text('Layout'); 
+                $('.layout-block').hide();
               } else {
                 $('.container').removeClass("border-style");
                 $('#main').removeClass("border-style");
                 $('.container').addClass("edit-border-style");
                 $('#main').addClass("edit-border-style");
-                $(this).text('*Layout');
+                $(this).html(' &#8594; Layout');
+                $('.layout-block').show();
               }
               $(this).data("clicks", !clicks);
             });

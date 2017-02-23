@@ -1,5 +1,5 @@
 TODO:
-* Make the divs resizable
+* ~~Make the divs resizable~~
 * Make an export capability (so a layout can be saved)
 * make an import capability (so the layout can be restored)
     * Need to design a file structure for that -- possibly json, likely json
