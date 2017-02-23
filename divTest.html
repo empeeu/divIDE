@@ -25,15 +25,24 @@
         flex-direction: row;
     }
 
-    .border-style {
+    .edit-border-style {
         border: gainsboro;
         border-width: thin;
         border-style: solid;
         padding: 10px;
         margin: 10px;
         box-shadow: 2px 2px 2px #909090;
-        border-radius: 5px;
+        border-radius: 0px;
     }
+    .border-style {
+        border: gainsboro;
+        border-width: thin;
+        border-style: solid;
+        padding: 0px;
+        margin: 0px;
+/*         box-shadow: 2px 2px 2px #909090; */
+    }
+
 
     #outer {
         display:flex;
@@ -49,7 +58,6 @@
         flex: 1;
         display: flex;
     }
-
     #outer {
         position: relative;
         width: 100%;
@@ -118,7 +126,7 @@
               <li> 
                 <a href='#0'> Edit </a>
                 <ul class="menu">
-                  <li><a href='#0'> Layout </a></li>
+                  <li><a href='#0' id='tm-layout'>Layout</a></li>
                 </ul>
               </li>
             </ul>
@@ -130,6 +138,12 @@
         # ...
         </div>
     </div>
+
+    <script src="external/js/vendor/jquery.js"></script>
+    <script src="external/js/vendor/what-input.js"></script>
+    <script src="external/js/vendor/foundation.js"></script>
+    <script src="external/js/app.js"></script>
+    <script src='external/jquery-3.1.1.js'></script>
 
     <script>
         NELEMENTS = 0;
@@ -157,14 +171,16 @@
         }
 
         function show_menu(event){
-            var number = event.target.id;
-            clear_menu();
-            event.stopPropagation();
-            event.preventDefault();
-            var ctxMenu = $("#ctxMenu" + number)[0];
-            ctxMenu.style.display = "block";
-            ctxMenu.style.left = (event.pageX - 10)+"px";
-            ctxMenu.style.top = (event.pageY - 10)+"px";
+            if ($('#tm-layout').data('clicks')) {
+                var number = event.target.id;
+                clear_menu();
+                event.stopPropagation();
+                event.preventDefault();
+                var ctxMenu = $("#ctxMenu" + number)[0];
+                ctxMenu.style.display = "block";
+                ctxMenu.style.left = (event.pageX - 10)+"px";
+                ctxMenu.style.top = (event.pageY - 60)+"px";
+            }
         };
 
         function clear_menu(){
@@ -186,10 +202,9 @@
         }
 
         function addContainer(elem){
-            console.log('addContainer');
             parentElem = elem.parentElement.parentElement;
             div = document.createElement('div');
-            div.className = 'container border-style row-items';
+            div.className = 'container edit-border-style row-items';
             parentElem.appendChild(div);
             div.id = NELEMENTS + 1;
             div.innerHTML = NELEMENTS + 1;
@@ -210,12 +225,27 @@
             elem.classList.add("row-items")
         }
 
+        // JQuery Magic
+        $(document).ready(function(){
+            $('#tm-layout').click(function() {
+              var clicks = $(this).data('clicks');
+              if (clicks) {
+                $('.container').addClass("border-style");
+                $('#main').addClass("border-style");
+                $('.container').removeClass("edit-border-style");
+                $('#main').removeClass("edit-border-style");
+                $(this).text('Layout'); 
+              } else {
+                $('.container').removeClass("border-style");
+                $('#main').removeClass("border-style");
+                $('.container').addClass("edit-border-style");
+                $('#main').addClass("edit-border-style");
+                $(this).text('*Layout');
+              }
+              $(this).data("clicks", !clicks);
+            });
+        }); // end of document.ready
     </script>
-    <script src="external/js/vendor/jquery.js"></script>
-    <script src="external/js/vendor/what-input.js"></script>
-    <script src="external/js/vendor/foundation.js"></script>
-    <script src="external/js/app.js"></script>
-    <!--     <script src='external/jquery-3.1.1.js' /> -->
 
 </body>
 </html>
