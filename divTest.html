@@ -128,10 +128,16 @@
                   </li>
                 </ul>
               </li>
-              <li> 
-                <a href='#0'> Edit </a>
+              <li> <a href='#0'> Edit </a>
                 <ul class="menu">
-                  <li><a href='#0' id='tm-layout'>Layout</a></li>
+                  <li><a href='#0'>Preferences</a></li>
+                </ul>
+              </li>
+              <li><a href='#0'> Layout </a>
+                <ul class='menu'>
+                    <li><a href='#0' id='tm-layout'>Edit</a></li>
+                    <li><a href='#0' id='tm-layout-save'>Save</a></li>
+                    <li><a href='#0' id='tm-layout-load'>Load</a></li>
                 </ul>
               </li>
             </ul>
@@ -215,7 +221,7 @@
 
         function clear_menu(){
             var ctxMenus = $(".ctxMenu");
-            for (i=0; i < ctxMenus.length; i++){
+            for (var i=0; i < ctxMenus.length; i++){
                 ctxMenus[i].style.display = "none";
                 ctxMenus[i].style.left = "";
                 ctxMenus[i].style.top = "";    
@@ -294,20 +300,99 @@
                 $('#main').addClass("border-style");
                 $('.container').removeClass("edit-border-style");
                 $('#main').removeClass("edit-border-style");
-                $(this).text('Layout'); 
+                $(this).text('Edit'); 
                 $('.layout-block').hide();
               } else {
                 $('.container').removeClass("border-style");
                 $('#main').removeClass("border-style");
                 $('.container').addClass("edit-border-style");
                 $('#main').addClass("edit-border-style");
-                $(this).html(' &#8594; Layout');
+                $(this).html(' &#8594; Edit');
                 $('.layout-block').show();
               }
               $(this).data("clicks", !clicks);
             });
+
+            $('#tm-layout-save').click(function(){
+               exportLayout(); 
+            });
         }); // end of document.ready
+
+        function exportLayout(){
+            // Build the json structure defining the layout
+            var main = $('#main');
+            var layout = {
+                divMain: {
+                    divType: 'container', //has to be a container
+                    data: {
+                        alignment: ['row-items', 'column-items'][Number(main.hasClass('column-items'))],
+                        contents: containerContents(main)
+                    }
+                }
+            }
+            download('layout.json', JSON.stringify(layout));
+            
+        }
+        function containerContents(elem){
+            var contents = [];
+            var children = $(elem).children('div');
+            for (var i = 0; i < children.length; i++){
+                var child = $(children[i]);
+                contents.push({
+                   divType: 'container',
+                   data: {
+                       alignment: ['row-items', 'column-items'][Number($(child).hasClass('column-items'))],
+                       contents: containerContents(child),
+                       width: child.css('max-width'),
+                       height: child.css('max-height'),
+                       flex: child.css('flex')
+                   }
+                });
+            }
+            return contents;
+        }
+
+        // Downloading a file: http://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
+        function download(filename, text) {
+          var element = document.createElement('a');
+          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+          element.setAttribute('download', filename);
+
+          element.style.display = 'none';
+          document.body.appendChild(element);
+
+          element.click();
+
+          document.body.removeChild(element);
+        }
+
+        // Future functions
+        // Looks like importing is trickier: https://www.html5rocks.com/en/tutorials/file/dndfiles/
+
+        // Importing/reading a single file: http://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
+//         function readSingleFile(e) {
+//           var file = e.target.files[0];
+//           if (!file) {
+//             return;
+//           }
+//           var reader = new FileReader();
+//           reader.onload = function(e) {
+//             var contents = e.target.result;
+//             displayContents(contents);
+//           };
+//           reader.readAsText(file);
+//         }
+
+//         function displayContents(contents) {
+//           var element = document.getElementById('file-content');
+//           element.innerHTML = contents;
+//         }
+
+//         document.getElementById('file-input')
+//           .addEventListener('change', readSingleFile, false);
+
     </script>
+
 
 </body>
 </html>
