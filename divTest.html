@@ -324,8 +324,9 @@
             var layout = {
                 divMain: {
                     divType: 'container', //has to be a container
+                    classes: main.attr('class'),
+                    id: main.attr('id'),
                     data: {
-                        alignment: ['row-items', 'column-items'][Number(main.hasClass('column-items'))],
                         contents: containerContents(main)
                     }
                 }
@@ -340,8 +341,10 @@
                 var child = $(children[i]);
                 contents.push({
                    divType: 'container',
+                   classes: child.attr('class'),
+                   id: child.attr('id'),
+                   style: child.attr('style'),
                    data: {
-                       alignment: ['row-items', 'column-items'][Number($(child).hasClass('column-items'))],
                        contents: containerContents(child),
                        width: child.css('max-width'),
                        height: child.css('max-height'),
