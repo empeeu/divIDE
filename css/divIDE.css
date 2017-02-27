@@ -30,6 +30,7 @@
     box-shadow: 2px 2px 2px #909090;
     border-radius: 0px;
 }
+
 .borderStyle {
     border: gainsboro;
     border-width: thin;
@@ -38,7 +39,6 @@
     margin: 0px;
 /*         box-shadow: 2px 2px 2px #909090; */
 }
-
 
 #outer {
     display:flex;
@@ -54,6 +54,7 @@
     flex: 1;
     display: flex;
 }
+
 #outer {
     position: relative;
     width: 100%;

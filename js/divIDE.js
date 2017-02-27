@@ -1,11 +1,14 @@
+// Setting up the main structure
 NELEMENTS = 0;
 var TEST;
 var main = $("#main")[0];
-make_menu(main, 'main');
-main.addEventListener("contextmenu", show_menu, false);
-main.addEventListener("click", clear_menu, false);
+makeMenu(main, 'main');
+main.addEventListener("contextmenu", showMenu, false);
+main.addEventListener("click", clearMenu, false);
 
-function make_menu(elem, number){
+
+// Setting up the layout panels
+function makeMenu(elem, number){
     var menu = '';
     menu += '\
     <menu class="ctxMenuStyle ctxMenu" style="display:none" id="ctxMenu' + number + '"> \
@@ -23,7 +26,7 @@ function make_menu(elem, number){
     elem.innerHTML += menu;
 }
 
-function make_container_block(elem) {
+function makeContainerBlock(elem) {
     elem.innerHTML += "\
         <div class='contentBlock layoutBlock'><table><tbody> \
         <tr>\
@@ -49,10 +52,10 @@ function make_container_block(elem) {
         </tbody></table></div>"
 }
 
-function show_menu(event){
+function showMenu(event){
     if ($('#tmLayout').data('clicks')) {
         var number = event.target.id;
-        clear_menu();
+        clearMenu();
         event.stopPropagation();
         event.preventDefault();
         var ctxMenu = $("#ctxMenu" + number)[0];
@@ -62,7 +65,7 @@ function show_menu(event){
     }
 };
 
-function clear_menu(){
+function clearMenu(){
     var ctxMenus = $(".ctxMenu");
     for (var i=0; i < ctxMenus.length; i++){
         ctxMenus[i].style.display = "none";
@@ -71,28 +74,6 @@ function clear_menu(){
     }
 
 };
-
-function removeContainer(elem){
-    //parentElement = $(this).parent('div')
-    parentElem = elem.parentElement.parentElement
-    if (parentElem.id != 'main'){
-        parentElem.remove();
-    }
-}
-
-function addContainer(elem){
-    parentElem = elem.parentElement.parentElement;
-    div = document.createElement('div');
-    div.className = 'container editBorderStyle rowItems';
-    parentElem.appendChild(div);
-    div.id = NELEMENTS + 1;
-//             div.innerHTML = NELEMENTS + 1;
-    NELEMENTS += 1;
-    make_menu(div, div.id);
-    make_container_block(div);
-    div.addEventListener("contextmenu", show_menu, false);
-    div.addEventListener("click", clear_menu, false);
-}
 
 function alignVertical(melem){
     elem = melem.parentElement.parentElement.parentElement;
@@ -134,6 +115,50 @@ function boxHeightChange(melem){
     boxSizeChange(melem, 'height');
 }
 
+function removeContainer(elem){
+    //parentElement = $(this).parent('div')
+    parentElem = elem.parentElement.parentElement
+    if (parentElem.id != 'main'){
+        parentElem.remove();
+    }
+}
+
+function addContainer(elem){
+    parentElem = elem.parentElement.parentElement;
+    div = document.createElement('div');
+    div.className = 'container editBorderStyle rowItems';
+    parentElem.appendChild(div);
+    div.id = NELEMENTS + 1;
+//             div.innerHTML = NELEMENTS + 1;
+    NELEMENTS += 1;
+    makeMenu(div, div.id);
+    makeContainerBlock(div);
+    div.addEventListener("contextmenu", showMenu, false);
+    div.addEventListener("click", clearMenu, false);
+}
+
+function containerContents(elem){
+    var contents = [];
+    var children = $(elem).children('div');
+    for (var i = 0; i < children.length; i++){
+        var child = $(children[i]);
+        contents.push({
+           divType: 'container',
+           classes: child.attr('class'),
+           id: child.attr('id'),
+           style: child.attr('style'),
+           data: {
+               contents: containerContents(child),
+               width: child.css('max-width'),
+               height: child.css('max-height'),
+               flex: child.css('flex')
+           }
+        });
+    }
+    return contents;
+}
+
+
 // JQuery Magic
 $(document).ready(function(){
     $('#tmLayout').click(function() {
@@ -172,6 +197,8 @@ $(document).ready(function(){
         });
 }); // end of document.ready
 
+
+// Setting up the common functions, general utility
 function exportLayout(){
     // Build the json structure defining the layout
     var main = $('#main');
@@ -186,31 +213,11 @@ function exportLayout(){
         }
     }
     download('layout.json', JSON.stringify(layout));
+}
 
-}
-function containerContents(elem){
-    var contents = [];
-    var children = $(elem).children('div');
-    for (var i = 0; i < children.length; i++){
-        var child = $(children[i]);
-        contents.push({
-           divType: 'container',
-           classes: child.attr('class'),
-           id: child.attr('id'),
-           style: child.attr('style'),
-           data: {
-               contents: containerContents(child),
-               width: child.css('max-width'),
-               height: child.css('max-height'),
-               flex: child.css('flex')
-           }
-        });
-    }
-    return contents;
-}
 
 function importLayout(layout){
-
+    // TODO:
 }
 
 // Downloading a file: http://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
@@ -227,9 +234,7 @@ function download(filename, text) {
   document.body.removeChild(element);
 }
 
-// Future functions
 // Looks like importing is trickier: https://www.html5rocks.com/en/tutorials/file/dndfiles/
-
 // Importing/reading a single file: http://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
 function readSingleFile(e, callback) {
   var file = e.target.files[0];
