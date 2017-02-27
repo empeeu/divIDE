@@ -8,16 +8,16 @@ main.addEventListener("click", clear_menu, false);
 function make_menu(elem, number){
     var menu = '';
     menu += '\
-    <menu class="ctx-menu ctxMenu" style="display:none" id="ctxMenu' + number + '"> \
-    <menu title="Add Container" class="ctx-menu" onclick="addContainer(this)"> \
+    <menu class="ctxMenuStyle ctxMenu" style="display:none" id="ctxMenu' + number + '"> \
+    <menu title="Add Container" class="ctxMenuStyle" onclick="addContainer(this)"> \
     </menu> '
     if (number != 'main'){
-        menu += '<menu title="Remove Container" class="ctx-menu" onclick="removeContainer(this)"> \
+        menu += '<menu title="Remove Container" class="ctxMenuStyle" onclick="removeContainer(this)"> \
         </menu>'
     }
-    menu += '<menu title="Align" class="ctx-menu"> \
-                 <menu title="Vertical" class="ctx-menu"  onclick="alignVertical(this)"> </menu>  \
-                 <menu title="Horizontal" class="ctx-menu" onclick="alignHorizontal(this)"></menu> \
+    menu += '<menu title="Align" class="ctxMenuStyle"> \
+                 <menu title="Vertical" class="ctxMenuStyle"  onclick="alignVertical(this)"> </menu>  \
+                 <menu title="Horizontal" class="ctxMenuStyle" onclick="alignHorizontal(this)"></menu> \
         </menu> \
     </menu>'
     elem.innerHTML += menu;
@@ -25,10 +25,10 @@ function make_menu(elem, number){
 
 function make_container_block(elem) {
     elem.innerHTML += "\
-        <div class='content-block layout-block'><table><tbody> \
+        <div class='contentBlock layoutBlock'><table><tbody> \
         <tr>\
             <td>Width:</td> \
-            <td><input type='number' min=0 max=2048 class='layout-width' value='1' onchange='boxWidthChange(this)'> \
+            <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxWidthChange(this)'> \
             </input> </td> \
             <td> <select class='unit' onchange='boxWidthChange(this)'> \
                   <option value='flex'>flex</option> \
@@ -38,7 +38,7 @@ function make_container_block(elem) {
         </tr> \
         <tr>\
             <td>Height:</td> \
-            <td><input type='number' min=0 max=2048 class='layout-width' value='1' onchange='boxHeightChange(this)'> \
+            <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxHeightChange(this)'> \
             </input> </td> \
             <td> <select class='unit' onchange='boxHeightChange(this)'> \
                   <option value='flex'>flex</option> \
@@ -50,7 +50,7 @@ function make_container_block(elem) {
 }
 
 function show_menu(event){
-    if ($('#tm-layout').data('clicks')) {
+    if ($('#tmLayout').data('clicks')) {
         var number = event.target.id;
         clear_menu();
         event.stopPropagation();
@@ -83,7 +83,7 @@ function removeContainer(elem){
 function addContainer(elem){
     parentElem = elem.parentElement.parentElement;
     div = document.createElement('div');
-    div.className = 'container edit-border-style row-items';
+    div.className = 'container editBorderStyle rowItems';
     parentElem.appendChild(div);
     div.id = NELEMENTS + 1;
 //             div.innerHTML = NELEMENTS + 1;
@@ -96,13 +96,13 @@ function addContainer(elem){
 
 function alignVertical(melem){
     elem = melem.parentElement.parentElement.parentElement;
-    elem.classList.remove("row-items")
-    elem.classList.add("column-items")
+    elem.classList.remove("rowItems")
+    elem.classList.add("columnItems")
 }
 function alignHorizontal(melem){
     elem = melem.parentElement.parentElement.parentElement;
-    elem.classList.remove("column-items")
-    elem.classList.add("row-items")
+    elem.classList.remove("columnItems")
+    elem.classList.add("rowItems")
 }
 
 // Function for layout box
@@ -136,31 +136,31 @@ function boxHeightChange(melem){
 
 // JQuery Magic
 $(document).ready(function(){
-    $('#tm-layout').click(function() {
+    $('#tmLayout').click(function() {
       var clicks = $(this).data('clicks');
       if (clicks) {
-        $('.container').addClass("border-style");
-        $('#main').addClass("border-style");
-        $('.container').removeClass("edit-border-style");
-        $('#main').removeClass("edit-border-style");
+        $('.container').addClass("borderStyle");
+        $('#main').addClass("borderStyle");
+        $('.container').removeClass("editBorderStyle");
+        $('#main').removeClass("editBorderStyle");
         $(this).text('Edit'); 
-        $('.layout-block').hide();
+        $('.layoutBlock').hide();
       } else {
-        $('.container').removeClass("border-style");
-        $('#main').removeClass("border-style");
-        $('.container').addClass("edit-border-style");
-        $('#main').addClass("edit-border-style");
+        $('.container').removeClass("borderStyle");
+        $('#main').removeClass("borderStyle");
+        $('.container').addClass("editBorderStyle");
+        $('#main').addClass("editBorderStyle");
         $(this).html(' &#8594; Edit');
-        $('.layout-block').show();
+        $('.layoutBlock').show();
       }
       $(this).data("clicks", !clicks);
     });
 
-    $('#tm-layout-save').click(function(){
+    $('#tmLayoutSave').click(function(){
        exportLayout(); 
     });
 
-    $('#tm-layout-load-file').change(function (e) {
+    $('#tmLayoutLoadFile').change(function (e) {
         var layout;
         function callback(result) {
             layout = JSON.parse(result);

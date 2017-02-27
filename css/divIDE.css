@@ -1,4 +1,4 @@
-.menu-bar {
+.menuBar {
     height:40px;
     background:lightgrey;
     box-shadow: 5px 5px 5px #909090;
@@ -9,19 +9,19 @@
     display: flex;
 }
 
-.content-block {
+.contentBlock {
     margin: 0  auto auto 0;
 }
 
-.column-items {
+.columnItems {
     flex-direction: column;
 }
 
-.row-items {
+.rowItems {
     flex-direction: row;
 }
 
-.edit-border-style {
+.editBorderStyle {
     border: gainsboro;
     border-width: thin;
     border-style: solid;
@@ -30,7 +30,7 @@
     box-shadow: 2px 2px 2px #909090;
     border-radius: 0px;
 }
-.border-style {
+.borderStyle {
     border: gainsboro;
     border-width: thin;
     border-style: solid;
@@ -65,7 +65,7 @@
     z-index:100;
 }
 
-.ctx-menu {
+.ctxMenuStyle {
     position:absolute;
     display:block;
     left:0px;
@@ -79,23 +79,28 @@
     font-weight:normal;
     white-space:nowrap;
 }
-.ctx-menu:hover{
+
+.ctxMenuStyle:hover{
     background-color:#eef;
     font-weight:bold;
 }
-.ctx-menu:hover > menu{
+
+.ctxMenuStyle:hover > menu{
     display:block;
 }
-.ctx-menu > menu{
+
+.ctxMenuStyle > menu{
     display:none;
     position:relative;
     top:-20px;
     left:100%;
     width:140px;
 }
-.ctx-menu[title]:before{
+
+.ctxMenuStyle[title]:before{
     content:attr(title);
 }
-.ctx-menu:not([title]):before{
+
+.ctxMenuStyle:not([title]):before{
     content:"\2630";
 }
