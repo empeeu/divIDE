@@ -7,6 +7,90 @@ main.addEventListener("contextmenu", showMenu, false);
 main.addEventListener("click", clearMenu, false);
 
 
+layout = {
+  name: "Layout", 
+  panelHTML: function(parentElement) {
+    var elId = parentElement.id + '.' + ($(parentElement).children().length + 1);
+    var html = "\
+      <div id='" + elId + "'class='contentPanel layoutPanel'><table><tbody> \
+        <tr>\
+          <td>Width:</td> \
+          <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxWidthChange(this)'> \
+          </input> </td> \
+          <td> <select class='unit' onchange='boxWidthChange(this)'> \
+                <option value='flex'>flex</option> \
+                <option value='px'>px</option> \
+               </select> \
+          </td> \
+        </tr> \
+        <tr>\
+          <td>Height:</td> \
+          <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxHeightChange(this)'> \
+          </input> </td> \
+          <td> <select class='unit' onchange='boxHeightChange(this)'> \
+                <option value='flex'>flex</option> \
+                <option value='px'>px</option> \
+               </select> \
+          </td> \
+        </tr> \
+      </tbody></table></div>";
+    return html
+  }, 
+
+  panelContextMenu: function(parentElement) {
+    var number = parentElement.id + '.' + ($(parentElement).children().length + 1);
+    var menu = '';
+    menu = '\
+      <menu class="ctxMenuStyle ctxMenu" style="display:none" id="ctxMenu' + number + '"> \
+        <menu title="Add Container" class="ctxMenuStyle" onclick="addContainer(this)"> \
+        </menu> \
+        <menu title="Remove Container" class="ctxMenuStyle" onclick="removeContainer(this)"> \
+        </menu>\
+        <menu title="Align" class="ctxMenuStyle"> \
+          <menu title="Vertical" class="ctxMenuStyle"  onclick="alignVertical(this)"> </menu>  \
+          <menu title="Horizontal" class="ctxMenuStyle" onclick="alignHorizontal(this)"></menu> \
+        </menu> \
+      </menu>'
+    return menu;
+  },
+
+  topMenuItems : [
+    {
+      Layout: {
+        subMenus: [
+          {
+            Edit: {
+              id: 'tmLayoutEdit'
+              }
+          }, {
+            Save: {
+              id: 'tmLayoutSave'
+              },
+          }, {
+            Load: {
+              id: 'tmLayoutLoad',
+              onclick: "$('#tmLayoutLoadFile').click()",
+            }
+          }
+        ],
+        id: "tmLayout"
+      }
+    }
+  ],
+
+  data: {
+      callbackFunctions: [],
+      dataLinks: {},
+  }, 
+
+  ondDataLinksChanges: function(element){
+      // TODO implement
+  },
+  ready: function(){
+    $('#tmLayoutLoad').append('<input type="file" id="tmLayoutLoadFile" style="display: none;" />');
+  }
+}
+
 // Setting up the layout panels
 function makeMenu(elem, number){
     var menu = '';
@@ -26,9 +110,10 @@ function makeMenu(elem, number){
     elem.innerHTML += menu;
 }
 
+// DONE
 function makeContainerBlock(elem) {
     elem.innerHTML += "\
-        <div class='contentBlock layoutBlock'><table><tbody> \
+            <div class='contentPanel layoutBlock'><table><tbody> \
         <tr>\
             <td>Width:</td> \
             <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxWidthChange(this)'> \
