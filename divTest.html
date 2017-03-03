@@ -11,66 +11,30 @@
     <div id='outer'>
         <div id='topMenu' class='menuBar'>
             <ul class="dropdown menu" data-dropdown-menu>
-              <li>
-                <a>File</a>
-                <ul class="menu">
-                  <li><a href="#0">Open</a></li>
-                  <li>
-                    <a href='#0'> Recent</a>
-                    <ul class='menu'>
-                      <li><a href='#0'>Item 1 subA</a></li>
-                      <li><a href='#0'>Item 1 subB</a></li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-              <li> <a href='#0'> Edit </a>
-                <ul class="menu">
-                  <li><a href='#0'>Preferences</a></li>
-                </ul>
-              </li>
-              <li><a href='#0'> Layout </a>
-                <ul class='menu'>
-                    <li><a href='#0' id='tmLayout'>Edit</a></li>
-                    <li><a href='#0' id='tmLayoutSave'>Save</a></li>
-                    <li><a href='#0' id='tmLayoutLoad' onclick="$('#tmLayoutLoadFile').click()">Load</a>
-                        <input type="file" id="tmLayoutLoadFile" style="display: none;" />
-                    </li>
-                </ul>
-              </li>
+                <!-- Top Menu Items Go here -->
             </ul>
         </div>
-            <div id="main" class='borderStyle columnItems' panelType='main'>
-                <!-- All the context menus go here -->
-                <div id='CtxMenus'>
-                    <div id='mainCtxMenu' class='ctxMenu'>
-                      <ul class="dropdown menu vertical" data-dropdown-menu>
-                        <li><a href="#0" onclick='addContainer'>Add Panel</a></li>
-                        <li><a href="#0" onclick="removeContainer(this)">Remove Panel</a></li>
-                        <li>
-                          <a href='#0'> Align</a>
-                          <ul class='menu'>
-                            <li><a href='#0' onclick="alignHorizontal(this)">Horizontal</a></li>
-                            <li><a href='#0' onclick="alignVertical(this)">Vertical</a></li>
-                          </ul>
-                        </li>
-                      </ul>
-                    </div>
-                </div>
-            <!--  End Main Div -->
-            </div>
+
+        <div id="main" class="borderStyle columnItems" panelType="main"> 
+        <!-- All internal divs go here --> 
+         <div id="CtxMenus"> 
+           <!-- All the context menus go here --> 
+         </div> <!-- end CtxMenus -->
+        </div> <!-- end main -->
+            
+            
         <div id='statusBar' class='menuBar'> 
         # ...
         </div>
     </div>
-    
 
-    <script src="external/js/vendor/jquery.js"></script>
+    <script src='external/jquery-3.1.1.js'></script>    
+    <script src='js/divIDE.js'></script>
+<!--     <script src="external/js/vendor/jquery.js"></script> -->
     <script src="external/js/vendor/what-input.js"></script>
     <script src="external/js/vendor/foundation.js"></script>
     <script src="external/js/app.js"></script>
-    <script src='external/jquery-3.1.1.js'></script>
-    <script src='js/divIDE.js'></script>
+
 </body>
 </html>
 

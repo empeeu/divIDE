@@ -1,14 +1,5 @@
 
-// Setting up the main structure
-$(document).ready(function(){
-  NELEMENTS = 0;
-  var TEST;
-  var main = $("#main")[0];
-  // makeMenu(main, 'main');
-  main.addEventListener("contextmenu", divIDE.showMenu, false);
-  main.addEventListener("click", divIDE.clearMenu, false);
-});
-
+// Define the main API
 var divIDE = {
   ctxTarget: undefined,
 
@@ -20,7 +11,7 @@ var divIDE = {
     if (panelMenu == undefined){
       divIDE.showMenuType(panelType);
     } else {
-      divIDE.panelTypes[panelType].showMenu(event);
+      divIDE.panelTypes[panelType].showMenu(panelType, event);
     }
   },
 
@@ -43,23 +34,90 @@ var divIDE = {
     }
   },
   panelTypes: {  
-    main: {}
-  }
+    main: {
+      showMenu: function(panelType, event) {
+        if ($('#tmLayout').data('clicks')){
+          divIDE.showMenuType(panelType);
+        }
+      }
+    }
+  },
+  
+  registerPanel: function (panel) {
+    divIDE.panelTypes[panel.name] = panel;
+    var topMenus = panel.topMenuItems;
+    if (topMenus != undefined){
+      divIDE.addTopMenuItems(topMenus);
+    }
+    var ctxMenus = panel.contextMenuItems;
+    if (ctxMenus != undefined){
+      divIDE.addContextMenuItems(ctxMenus);
+    }
+    var ready = panel.ready;
+    if (ready != undefined){
+      panel.ready();
+    }
+  },
+
+  addTopMenuItems: function(topMenus){
+    var parent = $('#topMenu').children();
+    var html = '';
+    // helper function for recursion
+    var i = 0;
+    function addSubMenus(menus, i){
+      var html = '';
+      for (key in menus){
+        var id = menus[key].id;
+        if (id == undefined){
+          id = 'topMenu' + key;
+        }
+        var litext = '';
+        var ultext = '';
+        if (i == 0){
+          litext = '<li role="menuitem" class="is-dropdown-submenu-parent opens-right"\
+           aria-haspopup="true" aria-label="File" data-is-click="false">';
+          ultext = '<ul class="menu submenu is-dropdown-submenu first-sub vertical" data-submenu="" role="menu">';
+        } else {
+          litext = '<li role="menuitem" class="is-submenu-item is-dropdown-submenu-item">'
+          ultext = '<ul class="menu submenu is-dropdown-submenu vertical" data-submenu="" role="menu">';
+        }
+        html += litext + '\
+          <a' + ' id="' + id + '">' + key + '</a>';
+        if (menus[key].subMenus != undefined){
+          html += ultext;
+            
+          html += addSubMenus(menus[key].subMenus, i+1);
+          html += '\
+            </ul>'
+        }
+        html += '\
+          </li>';
+      }
+      return html;
+    }
+    // Add up them htmls
+    html += addSubMenus(topMenus, i);  
+    parent.append(html);
+  },
+
+  addContextMenuItems: function (ctxMenus) {}
 }
 
+
+// Main panel definition
 var main = {
   name: "main", 
-  panelHTML: function(parentElement) {
-    var html = '';
-    html = '\
-      <div id="main" class="borderStyle columnItems" panelType="main"> \
-        <!-- All internal divs go here --> \ \
-         <div id="CtxMenus"> \
-           <!-- All the context menus go here --> \
-         </div> <!-- end CtxMenus -->\
-      </div> <!-- end main -->';
-    return html
-  }, 
+//   panelHTML: function(parentElement) {
+//     var html = '';
+//     html = '\
+//       <div id="main" class="borderStyle columnItems" panelType="main"> \
+//         <!-- All internal divs go here --> \ \
+//          <div id="CtxMenus"> \
+//            <!-- All the context menus go here --> \
+//          </div> <!-- end CtxMenus -->\
+//       </div> <!-- end main -->';
+//     return html
+//   }, 
   contextMenuItems: {
     "Add Panel": {
       id: 'mainAddPanel',
@@ -99,9 +157,15 @@ var main = {
       },
       id: "tmFile"
     }
+  },
+  showMenu: function(panelType, event) {
+    if ($('#tmLayoutEdit').data('clicks')){
+      divIDE.showMenuType(panelType);
+    }
   }
 }
 
+// Layout panel definition
 layout = {
   name: "Layout", 
   panelHTML: function(parentElement) {
@@ -259,6 +323,26 @@ layout = {
     $('#tmLayoutLoad').append('<input type="file" id="tmLayoutLoadFile" style="display: none;" />');
   }
 }
+
+// Initialization
+// Setting up the main structure
+
+// Panels need to be registered BEFORE foundation is imported
+divIDE.registerPanel(main);  
+
+// Setup whatever is required AFTER document is ready
+$(document).ready(function(){
+
+  NELEMENTS = 0;
+  var TEST;
+
+   
+  var mainID = $("#main")[0];
+  mainID.addEventListener("contextmenu", divIDE.showMenu, false);
+  mainID.addEventListener("click", divIDE.clearMenu, false);
+
+});
+
 
 function containerContents(elem){
     var contents = [];
