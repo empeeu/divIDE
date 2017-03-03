@@ -12,6 +12,17 @@ panelName = {
 
         panelContextMenu: function(parentElement), 
 
+        contextMenuItems: [
+           {
+             menuName: {
+               attr1: 'Value of attribute',
+               attr2: 'Value of attribute',
+               subMenus: [
+                   // Same structure as contextMenuItems
+               ]
+             }
+           }
+        ]
         topMenuItems: [
            {
              menuName: {

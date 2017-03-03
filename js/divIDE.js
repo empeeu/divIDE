@@ -13,12 +13,28 @@ var divIDE = {
   ctxTarget: undefined,
 
   showMenu: function (event){
+    divIDE.clearMenu();
     divIDE.ctxTarget = $(event.target);
     var panelType = divIDE.ctxTarget.attr('panelType');
-    divIDE.panels[panelType].showMenu(event);
+    var panelMenu = divIDE.panelTypes[panelType].showMenu;
+    if (panelMenu == undefined){
+      divIDE.showMenuType(panelType);
+    } else {
+      divIDE.panelTypes[panelType].showMenu(event);
+    }
+  },
+
+  showMenuType: function(panelType){
+      event.stopPropagation();
+      event.preventDefault();
+      var ctxMenu = $("#" + panelType + "CtxMenu")[0];
+      ctxMenu.style.display = "block";
+      ctxMenu.style.left = (event.pageX - 10)+"px";
+      ctxMenu.style.top = (event.pageY - 60)+"px";
   },
 
   clearMenu: function (elem){
+    divIDE.ctxTarget = undefined;
     var ctxMenus = $(".ctxMenu");
     for (var i=0; i < ctxMenus.length; i++){
         ctxMenus[i].style.display = "none";
@@ -26,24 +42,65 @@ var divIDE = {
         ctxMenus[i].style.top = "";    
     }
   },
-
-  panels: {
-    main: {
-      showMenu: function(event){
-        if ($('#tmLayout').data('clicks')) {
-          clearMenu();
-          event.stopPropagation();
-          event.preventDefault();
-          var ctxMenu = $("#mainCtxMenu")[0];
-          ctxMenu.style.display = "block";
-          ctxMenu.style.left = (event.pageX - 10)+"px";
-          ctxMenu.style.top = (event.pageY - 60)+"px";
-        }
-      }
-    }
+  panelTypes: {  
+    main: {}
   }
 }
 
+var main = {
+  name: "main", 
+  panelHTML: function(parentElement) {
+    var html = '';
+    html = '\
+      <div id="main" class="borderStyle columnItems" panelType="main"> \
+        <!-- All internal divs go here --> \ \
+         <div id="CtxMenus"> \
+           <!-- All the context menus go here --> \
+         </div> <!-- end CtxMenus -->\
+      </div> <!-- end main -->';
+    return html
+  }, 
+  contextMenuItems: {
+    "Add Panel": {
+      id: 'mainAddPanel',
+      onclick: 'layout.addPanel',
+    },
+    "Align": {
+      id: 'mainAlign',
+      subMenus: {
+        "Vertical": {
+          id: "mainAlignVertical",
+          onclick: 'layout.alignVertical'
+        },
+        "Horizontal": {
+          id: "mainAlignHorizontal",
+          onclick: 'alignHorizontal'
+        }
+      }
+    }
+  },
+  topMenuItems: {
+    File: {
+      subMenus: {
+        Open: {
+          id: 'tmFileOpen'
+        },
+        Recent: {
+          id: 'tmFileRecent',
+          subMenus: {
+            item1: {
+              id: 'item1'
+            },
+            item2: {
+              id: 'item2'
+            }
+          }
+        }
+      },
+      id: "tmFile"
+    }
+  }
+}
 
 layout = {
   name: "Layout", 
@@ -75,46 +132,46 @@ layout = {
     return html
   }, 
 
-  panelContextMenu: function(parentElement) {
-    var number = parentElement.id + '.' + ($(parentElement).children().length + 1);
-    var menu = '';
-    menu = '\
-      <menu class="ctxMenuStyle ctxMenu" style="display:none" id="ctxMenu' + number + '"> \
-        <menu title="Add Container" class="ctxMenuStyle" onclick="addContainer(this)"> \
-        </menu> \
-        <menu title="Remove Container" class="ctxMenuStyle" onclick="removeContainer(this)"> \
-        </menu>\
-        <menu title="Align" class="ctxMenuStyle"> \
-          <menu title="Vertical" class="ctxMenuStyle"  onclick="alignVertical(this)"> </menu>  \
-          <menu title="Horizontal" class="ctxMenuStyle" onclick="alignHorizontal(this)"></menu> \
-        </menu> \
-      </menu>'
-    return menu;
-  },
-
-  topMenuItems : [
-    {
-      Layout: {
-        subMenus: [
-          {
-            Edit: {
-              id: 'tmLayoutEdit'
-              }
-          }, {
-            Save: {
-              id: 'tmLayoutSave'
-              },
-          }, {
-            Load: {
-              id: 'tmLayoutLoad',
-              onclick: "$('#tmLayoutLoadFile').click()",
-            }
-          }
-        ],
-        id: "tmLayout"
+  contextMenuItems: {
+    "Add Panel": {
+      id: 'mainAddPanel',
+      onclick: 'layout.addPanel',
+    },
+    "Remove Panel": {
+      id: 'mainRemovePanel',
+      onclick: 'layout.removePanel',
+    },
+    "Align": {
+      id: 'mainAlign',
+      subMenus: {
+        "Vertical": {
+          id: "mainAlignVertical",
+          onclick: 'layout.alignVertical'
+        },
+        "Horizontal": {
+          id: "mainAlignHorizontal",
+          onclick: 'alignHorizontal'
+        }
       }
     }
-  ],
+  },
+  topMenuItems : {
+    Layout: {
+      subMenus: {
+        Edit: {
+          id: 'tmLayoutEdit'
+        },
+        Save: {
+          id: 'tmLayoutSave'
+        },
+        Load: {
+          id: 'tmLayoutLoad',
+          onclick: "$('#tmLayoutLoadFile').click()",
+        }
+      },
+      id: "tmLayout"
+    }
+  },
 
   data: {
       callbackFunctions: [],
@@ -172,142 +229,35 @@ layout = {
       boxSizeChange(melem, 'height');
   },
 
+  removePanel: function (){
+      parentElem = divIDE.ctxTarget;
+      if (parentElem.id != 'main'){
+          parentElem.remove();
+      }
+  },
+
+  addPanel: function (){
+      parentElem = divIDE.ctxTarget;
+      $(parentElem).append(layout.panelHTML(parentElem))
+  },
+
+  alignVertical: function (melem){
+      elem = divIDE.ctxTarget;
+      elem.classList.remove("rowItems")
+      elem.classList.add("columnItems")
+  },
+
+  alignHorizontal: function (melem){
+      elem = divIDE.ctxTarget;
+      elem.classList.remove("columnItems")
+      elem.classList.add("rowItems")
+  },
+
   // Ready function
 
   ready: function(){
     $('#tmLayoutLoad').append('<input type="file" id="tmLayoutLoadFile" style="display: none;" />');
   }
-}
-
-// Setting up the layout panels
-function makeMenu(elem, number){
-    var menu = '';
-    menu += '\
-    <menu class="ctxMenuStyle ctxMenu" style="display:none" id="ctxMenu' + number + '"> \
-    <menu title="Add Container" class="ctxMenuStyle" onclick="addContainer(this)"> \
-    </menu> '
-    if (number != 'main'){
-        menu += '<menu title="Remove Container" class="ctxMenuStyle" onclick="removeContainer(this)"> \
-        </menu>'
-    }
-    menu += '<menu title="Align" class="ctxMenuStyle"> \
-                 <menu title="Vertical" class="ctxMenuStyle"  onclick="alignVertical(this)"> </menu>  \
-                 <menu title="Horizontal" class="ctxMenuStyle" onclick="alignHorizontal(this)"></menu> \
-        </menu> \
-    </menu>'
-    elem.innerHTML += menu;
-}
-
-// DONE
-function makeContainerBlock(elem) {
-    elem.innerHTML += "\
-            <div class='contentPanel layoutBlock'><table><tbody> \
-        <tr>\
-            <td>Width:</td> \
-            <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxWidthChange(this)'> \
-            </input> </td> \
-            <td> <select class='unit' onchange='boxWidthChange(this)'> \
-                  <option value='flex'>flex</option> \
-                  <option value='px'>px</option> \
-                 </select> \
-            </td> \
-        </tr> \
-        <tr>\
-            <td>Height:</td> \
-            <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxHeightChange(this)'> \
-            </input> </td> \
-            <td> <select class='unit' onchange='boxHeightChange(this)'> \
-                  <option value='flex'>flex</option> \
-                  <option value='px'>px</option> \
-                 </select> \
-            </td> \
-        </tr> \
-        </tbody></table></div>"
-}
-
-function showMenu(event){
-    if ($('#tmLayout').data('clicks')) {
-        var number = event.target.id;
-        clearMenu();
-        event.stopPropagation();
-        event.preventDefault();
-        var ctxMenu = $("#ctxMenu" + number)[0];
-        ctxMenu.style.display = "block";
-        ctxMenu.style.left = (event.pageX - 10)+"px";
-        ctxMenu.style.top = (event.pageY - 60)+"px";
-    }
-};
-
-function clearMenu(){
-    var ctxMenus = $(".ctxMenu");
-    for (var i=0; i < ctxMenus.length; i++){
-        ctxMenus[i].style.display = "none";
-        ctxMenus[i].style.left = "";
-        ctxMenus[i].style.top = "";    
-    }
-
-};
-
-function alignVertical(melem){
-    elem = melem.parentElement.parentElement.parentElement;
-    elem.classList.remove("rowItems")
-    elem.classList.add("columnItems")
-}
-function alignHorizontal(melem){
-    elem = melem.parentElement.parentElement.parentElement;
-    elem.classList.remove("columnItems")
-    elem.classList.add("rowItems")
-}
-
-// Function for layout box
-function boxSizeChange(melem, wh){
-    var elem = $(melem).closest('div').parent();
-    var tr = $(melem).closest('tr');
-    var unit = $(tr).find('select')[0].value;
-    var size = $(tr).find('input')[0].value;
-    if (unit == 'flex'){
-        elem.css('flex', size);
-        elem.css('max-' + wh, '');
-        inputs = elem.find('input');
-        for (var i = 0; i < inputs.length; i++){
-            var u = $(inputs[i]).closest('tr').find('select')[0].value;
-            if (u == 'flex'){
-                inputs[i].value = size;
-            }
-        }
-    } else if (unit == 'px') {
-        elem.css('flex', '');
-        elem.css('max-'+ wh, size + unit);
-    }
-}
-
-function boxWidthChange(melem){
-    boxSizeChange(melem, 'width');
-}
-function boxHeightChange(melem){
-    boxSizeChange(melem, 'height');
-}
-
-function removeContainer(elem){
-    //parentElement = $(this).parent('div')
-    parentElem = elem.parentElement.parentElement
-    if (parentElem.id != 'main'){
-        parentElem.remove();
-    }
-}
-
-function addContainer(elem){
-    parentElem = elem.parentElement.parentElement;
-    div = document.createElement('div');
-    div.className = 'container editBorderStyle rowItems';
-    parentElem.appendChild(div);
-    div.id = NELEMENTS + 1;
-//             div.innerHTML = NELEMENTS + 1;
-    NELEMENTS += 1;
-    makeMenu(div, div.id);
-    makeContainerBlock(div);
-    div.addEventListener("contextmenu", showMenu, false);
-    div.addEventListener("click", clearMenu, false);
 }
 
 function containerContents(elem){
