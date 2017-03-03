@@ -71,16 +71,8 @@ var divIDE = {
         if (id == undefined){
           id = 'topMenu' + key;
         }
-        var litext = '';
-        var ultext = '';
-        if (i == 0){
-          litext = '<li role="menuitem" class="is-dropdown-submenu-parent opens-right"\
-           aria-haspopup="true" aria-label="File" data-is-click="false">';
-          ultext = '<ul class="menu submenu is-dropdown-submenu first-sub vertical" data-submenu="" role="menu">';
-        } else {
-          litext = '<li role="menuitem" class="is-submenu-item is-dropdown-submenu-item">'
-          ultext = '<ul class="menu submenu is-dropdown-submenu vertical" data-submenu="" role="menu">';
-        }
+        var litext = '<li>';
+        var ultext = '<ul class="menu">';
         html += litext + '\
           <a' + ' id="' + id + '">' + key + '</a>';
         if (menus[key].subMenus != undefined){
