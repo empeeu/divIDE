@@ -58,41 +58,52 @@ var divIDE = {
       panel.ready();
     }
   },
+  // helper function for recursion
+  _addSubMenus: function (menus){
+    var html = '';
+    for (key in menus){
+      var id = menus[key].id;
+      if (id == undefined){
+        id = 'topMenu' + key;
+      }
+      var litext = '<li>';
+      var ultext = '<ul class="menu">';
+      html += litext + '\
+        <a' + ' id="' + id + '">' + key + '</a>';
+      if (menus[key].subMenus != undefined){
+        html += ultext;
 
+        html += divIDE._addSubMenus(menus[key].subMenus);
+        html += '\
+          </ul>'
+      }
+      html += '\
+        </li>';
+    }
+    return html;
+  },
   addTopMenuItems: function(topMenus){
     var parent = $('#topMenu').children();
     var html = '';
-    // helper function for recursion
-    var i = 0;
-    function addSubMenus(menus, i){
-      var html = '';
-      for (key in menus){
-        var id = menus[key].id;
-        if (id == undefined){
-          id = 'topMenu' + key;
-        }
-        var litext = '<li>';
-        var ultext = '<ul class="menu">';
-        html += litext + '\
-          <a' + ' id="' + id + '">' + key + '</a>';
-        if (menus[key].subMenus != undefined){
-          html += ultext;
-            
-          html += addSubMenus(menus[key].subMenus, i+1);
-          html += '\
-            </ul>'
-        }
-        html += '\
-          </li>';
-      }
-      return html;
-    }
+
     // Add up them htmls
-    html += addSubMenus(topMenus, i);  
+    html += divIDE._addSubMenus(topMenus);  
     parent.append(html);
   },
 
-  addContextMenuItems: function (ctxMenus) {}
+  addContextMenuItems: function (ctxMenus) {
+    var parent = $('#CtxMenus')
+    var html = ''
+
+    // TODO, add div and ul text to go with context menus
+
+
+    // Add up them menus
+    html += divIDE._addSubMenus(ctxMenus);
+
+    // TODO add closing div and ul text to go with context menus
+    parent.append(html);
+  }
 }
 
 
@@ -321,6 +332,8 @@ layout = {
 
 // Panels need to be registered BEFORE foundation is imported
 divIDE.registerPanel(main);  
+divIDE.registerPanel(layout);  
+
 
 // Setup whatever is required AFTER document is ready
 $(document).ready(function(){
@@ -360,7 +373,7 @@ function containerContents(elem){
 
 // JQuery Magic
 $(document).ready(function(){
-    $('#tmLayout').click(function() {
+    $('#tmLayoutEdit').click(function() {
       var clicks = $(this).data('clicks');
       if (clicks) {
         $('.container').addClass("borderStyle");
