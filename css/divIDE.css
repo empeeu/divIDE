@@ -64,6 +64,9 @@
 .ctxMenu{
     display:none;
     z-index:100;
+    position:absolute;
+    border: 1px solid #cacaca;
+    background: #fefefe;
 }
 
 .ctxMenuStyle {

@@ -1,10 +1,48 @@
+
 // Setting up the main structure
-NELEMENTS = 0;
-var TEST;
-var main = $("#main")[0];
-makeMenu(main, 'main');
-main.addEventListener("contextmenu", showMenu, false);
-main.addEventListener("click", clearMenu, false);
+$(document).ready(function(){
+  NELEMENTS = 0;
+  var TEST;
+  var main = $("#main")[0];
+  // makeMenu(main, 'main');
+  main.addEventListener("contextmenu", divIDE.showMenu, false);
+  main.addEventListener("click", divIDE.clearMenu, false);
+});
+
+var divIDE = {
+  ctxTarget: undefined,
+
+  showMenu: function (event){
+    divIDE.ctxTarget = $(event.target);
+    var panelType = divIDE.ctxTarget.attr('panelType');
+    divIDE.panels[panelType].showMenu(event);
+  },
+
+  clearMenu: function (elem){
+    var ctxMenus = $(".ctxMenu");
+    for (var i=0; i < ctxMenus.length; i++){
+        ctxMenus[i].style.display = "none";
+        ctxMenus[i].style.left = "";
+        ctxMenus[i].style.top = "";    
+    }
+  },
+
+  panels: {
+    main: {
+      showMenu: function(event){
+        if ($('#tmLayout').data('clicks')) {
+          clearMenu();
+          event.stopPropagation();
+          event.preventDefault();
+          var ctxMenu = $("#mainCtxMenu")[0];
+          ctxMenu.style.display = "block";
+          ctxMenu.style.left = (event.pageX - 10)+"px";
+          ctxMenu.style.top = (event.pageY - 60)+"px";
+        }
+      }
+    }
+  }
+}
 
 
 layout = {
@@ -15,9 +53,9 @@ layout = {
       <div id='" + elId + "'class='contentPanel layoutPanel'><table><tbody> \
         <tr>\
           <td>Width:</td> \
-          <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxWidthChange(this)'> \
+          <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='layout.boxWidthChange(this)'> \
           </input> </td> \
-          <td> <select class='unit' onchange='boxWidthChange(this)'> \
+          <td> <select class='unit' onchange='layout.boxWidthChange(this)'> \
                 <option value='flex'>flex</option> \
                 <option value='px'>px</option> \
                </select> \
@@ -25,9 +63,9 @@ layout = {
         </tr> \
         <tr>\
           <td>Height:</td> \
-          <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='boxHeightChange(this)'> \
+          <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='layout.boxHeightChange(this)'> \
           </input> </td> \
-          <td> <select class='unit' onchange='boxHeightChange(this)'> \
+          <td> <select class='unit' onchange='layout.boxHeightChange(this)'> \
                 <option value='flex'>flex</option> \
                 <option value='px'>px</option> \
                </select> \
@@ -83,9 +121,59 @@ layout = {
       dataLinks: {},
   }, 
 
-  ondDataLinksChanges: function(element){
+  getPanelData: function(elem) {
+    var trs = $(elem).find('tr');
+    var data = {};
+    for (var i=0; i < trs.length; i++){
+      var val = $(trs[i]).find('input').val();
+      var unit = $(trs[i]).find('select').val();
+      var key = '';
+      if ($(trs[i]).text().toLowerCase().includes('width')){
+        key = 'width';
+      } else if ($(trs[i]).text().toLowerCase().includes('height')) {
+        key = 'heigth';
+      }
+      data[key] = {size: val, unit: unit};
+
+    }
+    return data;
+  },
+
+  ondDataLinksChanged: function(element){
       // TODO implement
   },
+
+  // Other functions related to this panels
+  boxSizeChange: function (melem, wh){
+      var elem = $(melem).closest('div').parent();
+      var tr = $(melem).closest('tr');
+      var unit = $(tr).find('select')[0].value;
+      var size = $(tr).find('input')[0].value;
+      if (unit == 'flex'){
+          elem.css('flex', size);
+          elem.css('max-' + wh, '');
+          inputs = elem.find('input');
+          for (var i = 0; i < inputs.length; i++){
+              var u = $(inputs[i]).closest('tr').find('select')[0].value;
+              if (u == 'flex'){
+                  inputs[i].value = size;
+              }
+          }
+      } else if (unit == 'px') {
+          elem.css('flex', '');
+          elem.css('max-'+ wh, size + unit);
+      }
+  },
+
+  boxWidthChange: function (melem){
+      boxSizeChange(melem, 'width');
+  },
+  boxHeightChange: function (melem){
+      boxSizeChange(melem, 'height');
+  },
+
+  // Ready function
+
   ready: function(){
     $('#tmLayoutLoad').append('<input type="file" id="tmLayoutLoadFile" style="display: none;" />');
   }

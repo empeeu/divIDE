@@ -7,8 +7,11 @@ attributes describing the new panel. The schema is as follows:
 
 panelName = {
         name: 'panelName',  // This should also be the class name
+
 	panelHTML: function (parentElement),
+
         panelContextMenu: function(parentElement), 
+
         topMenuItems: [
            {
              menuName: {
@@ -20,10 +23,16 @@ panelName = {
              }
            }
         ],
+
         onDataLinkChange: {},  // When linked data changes, do this update
                                // This function goes into the 
                                // data.callbackFunctions of the linked panel
+
+        getPanelData: function(panelElement)  // returns the panel data in an
+                                              // object
+
         ready: function(), // Any required initialization not handled by divIDE
+        
 }
 
 // When a new panel of this particular type is created, this object is 
