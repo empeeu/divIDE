@@ -7,6 +7,10 @@ var divIDE = {
     divIDE.clearMenu();
     divIDE.ctxTarget = $(event.target);
     var panelType = divIDE.ctxTarget.attr('panelType');
+    if (panelType == undefined){
+      divIDE.ctxTarget = divIDE.ctxTarget.closest('[paneltype]');
+      panelType =  divIDE.ctxTarget.attr('panelType');
+    }
     var panelMenu = divIDE.panelTypes[panelType].showMenu;
     if (panelMenu == undefined){
       divIDE.showMenuType(panelType);
@@ -25,7 +29,7 @@ var divIDE = {
   },
 
   clearMenu: function (elem){
-    divIDE.ctxTarget = undefined;
+//     divIDE.ctxTarget = undefined;
     var ctxMenus = $(".ctxMenu");
     for (var i=0; i < ctxMenus.length; i++){
         ctxMenus[i].style.display = "none";
@@ -63,17 +67,25 @@ var divIDE = {
     }
   },
   // helper function for recursion
-  _addSubMenus: function (menus){
+  _addSubMenus: function (menus, idprepend){
+    if (idprepend == undefined){
+      var idprepend = '';
+    }
     var html = '';
     for (key in menus){
-      var id = menus[key].id;
-      if (id == undefined){
-        id = 'topMenu' + key;
+      var attrs = '';
+      for (attrkey in menus[key]){
+        if (attrkey == 'subMenus'){
+          continue
+        }
+        attrs += " " + attrkey + '="' + menus[key][attrkey] + '" ';
       }
+      
       var litext = '<li>';
       var ultext = '<ul class="menu">';
+
       html += litext + '\
-        <a' + ' id="' + id + '">' + key + '</a>';
+        <a' + attrs + '>' + key + '</a>';
       if (menus[key].subMenus != undefined){
         html += ultext;
 
@@ -86,12 +98,13 @@ var divIDE = {
     }
     return html;
   },
+
   addTopMenuItems: function(panel){
     var parent = $('#topMenu').children();
     var html = '';
 
     // Add up them htmls
-    html += divIDE._addSubMenus(panel.topMenuItems);  
+    html += divIDE._addSubMenus(panel.topMenuItems, 'topMenu');  
     parent.append(html);
   },
 
@@ -110,13 +123,20 @@ var divIDE = {
       </div>'
     parent.append(html);
   },
+  addPanel: function (parentElem, panel, attrs){
+    if (attrs == undefined){
+      var attrs = '';
+    }
+    var elId = $(parentElem).attr('id') + '.' + panel.name;
+    var attrs = 'id="' + elId + '" panelType="' + panel.name + '" ' + attrs;
+    var html = panel.panelHTML(parentElem, attrs);
+    parentElem.append(html);
+  },
 
   addPanelExampleDiv: function (panel) {
     var parentElem = $('#examplePanels');
-    var elId = $(parentElem).attr('id') + '.' + panel.name;
-    var attrs = 'id=' + elId + '" panelType="' + panel.name + '" style="display:none;"';
-    var html = panel.panelHTML(parentElem, attrs);
-    parentElem.append(html);
+    var attrs = 'style="display:none;"';
+    divIDE.addPanel(parentElem, panel, attrs);
   }
 }
 
@@ -138,18 +158,18 @@ var main = {
   contextMenuItems: {
     "Add Panel": {
       id: 'mainAddPanel',
-      onclick: 'layout.addPanel',
+      onclick: 'layout.addPanel()',
     },
     "Align": {
       id: 'mainAlign',
       subMenus: {
         "Vertical": {
           id: "mainAlignVertical",
-          onclick: 'layout.alignVertical'
+          onclick: 'layout.alignVertical()'
         },
         "Horizontal": {
           id: "mainAlignHorizontal",
-          onclick: 'alignHorizontal'
+          onclick: 'layout.alignHorizontal()'
         }
       }
     }
@@ -187,7 +207,7 @@ layout = {
   name: "Layout", 
   panelHTML: function(parentElement, attrs) {
     var html = "\
-      <div 'class='contentPanel layoutPanel'" + attrs + "><table><tbody> \
+      <div "  + attrs + "><table class='layoutBlock'><tbody> \
         <tr>\
           <td>Width:</td> \
           <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='layout.boxWidthChange(this)'> \
@@ -215,22 +235,22 @@ layout = {
   contextMenuItems: {
     "Add Panel": {
       id: 'mainAddPanel',
-      onclick: 'layout.addPanel',
+      onclick: 'layout.addPanel()',
     },
     "Remove Panel": {
       id: 'mainRemovePanel',
-      onclick: 'layout.removePanel',
+      onclick: 'layout.removePanel()',
     },
     "Align": {
       id: 'mainAlign',
       subMenus: {
         "Vertical": {
           id: "mainAlignVertical",
-          onclick: 'layout.alignVertical'
+          onclick: 'layout.alignVertical()'
         },
         "Horizontal": {
           id: "mainAlignHorizontal",
-          onclick: 'alignHorizontal'
+          onclick: 'layout.alignHorizontal()'
         }
       }
     }
@@ -282,7 +302,7 @@ layout = {
 
   // Other functions related to this panels
   boxSizeChange: function (melem, wh){
-      var elem = $(melem).closest('div').parent();
+      var elem = $(melem).closest('div');
       var tr = $(melem).closest('tr');
       var unit = $(tr).find('select')[0].value;
       var size = $(tr).find('input')[0].value;
@@ -303,10 +323,10 @@ layout = {
   },
 
   boxWidthChange: function (melem){
-      boxSizeChange(melem, 'width');
+      this.boxSizeChange(melem, 'width');
   },
   boxHeightChange: function (melem){
-      boxSizeChange(melem, 'height');
+      this.boxSizeChange(melem, 'height');
   },
 
   removePanel: function (){
@@ -317,20 +337,24 @@ layout = {
   },
 
   addPanel: function (){
-      parentElem = divIDE.ctxTarget;
-      $(parentElem).append(layout.panelHTML(parentElem))
+      var parentElem = divIDE.ctxTarget;
+      var classes = 'container contentPanel layoutPanel';
+      if ($('#tmLayoutEdit').data('clicks')){
+        classes += ' editBorderStyle'
+      }
+      divIDE.addPanel(parentElem, this, 'class="' + classes + '"');
   },
 
   alignVertical: function (melem){
       elem = divIDE.ctxTarget;
-      elem.classList.remove("rowItems")
-      elem.classList.add("columnItems")
+      elem.removeClass("rowItems")
+      elem.addClass("columnItems")
   },
 
   alignHorizontal: function (melem){
       elem = divIDE.ctxTarget;
-      elem.classList.remove("columnItems")
-      elem.classList.add("rowItems")
+      elem.removeClass("columnItems")
+      elem.addClass("rowItems")
   },
 
   // Ready function
