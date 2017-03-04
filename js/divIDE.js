@@ -47,11 +47,15 @@ var divIDE = {
     divIDE.panelTypes[panel.name] = panel;
     var topMenus = panel.topMenuItems;
     if (topMenus != undefined){
-      divIDE.addTopMenuItems(topMenus);
+      divIDE.addTopMenuItems(panel);
     }
     var ctxMenus = panel.contextMenuItems;
     if (ctxMenus != undefined){
-      divIDE.addContextMenuItems(ctxMenus);
+      divIDE.addContextMenuItems(panel);
+    }
+    var panelHTML = panel.panelHTML;
+    if (panelHTML != undefined){
+      divIDE.addPanelExampleDiv(panel);
     }
     var ready = panel.ready;
     if (ready != undefined){
@@ -82,27 +86,37 @@ var divIDE = {
     }
     return html;
   },
-  addTopMenuItems: function(topMenus){
+  addTopMenuItems: function(panel){
     var parent = $('#topMenu').children();
     var html = '';
 
     // Add up them htmls
-    html += divIDE._addSubMenus(topMenus);  
+    html += divIDE._addSubMenus(panel.topMenuItems);  
     parent.append(html);
   },
 
-  addContextMenuItems: function (ctxMenus) {
+  addContextMenuItems: function (panel) {
     var parent = $('#CtxMenus')
-    var html = ''
-
-    // TODO, add div and ul text to go with context menus
-
+    var html = '\
+      <div id="' + panel.name + 'CtxMenu" class="ctxMenu" style="display:none" panelType="' + panel.name + '">\
+        <ul class="dropdown menu vertical" data-dropdown-menu>'
 
     // Add up them menus
-    html += divIDE._addSubMenus(ctxMenus);
+    html += divIDE._addSubMenus(panel.contextMenuItems);
 
-    // TODO add closing div and ul text to go with context menus
+    // Add closing div and ul text to go with context menus
+    html += '\
+        </ul> \
+      </div>'
     parent.append(html);
+  },
+
+  addPanelExampleDiv: function (panel) {
+    var parentElem = $('#examplePanels');
+    var elId = $(parentElem).attr('id') + '.' + panel.name;
+    var attrs = 'id=' + elId + '" panelType="' + panel.name + '" style="display:none;"';
+    var html = panel.panelHTML(parentElem, attrs);
+    parentElem.append(html);
   }
 }
 
@@ -171,10 +185,9 @@ var main = {
 // Layout panel definition
 layout = {
   name: "Layout", 
-  panelHTML: function(parentElement) {
-    var elId = parentElement.id + '.' + ($(parentElement).children().length + 1);
+  panelHTML: function(parentElement, attrs) {
     var html = "\
-      <div id='" + elId + "'class='contentPanel layoutPanel'><table><tbody> \
+      <div 'class='contentPanel layoutPanel'" + attrs + "><table><tbody> \
         <tr>\
           <td>Width:</td> \
           <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='layout.boxWidthChange(this)'> \
