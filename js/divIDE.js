@@ -123,13 +123,11 @@ var divIDE = {
       </div>'
     parent.append(html);
   },
-  addPanel: function (parentElem, panel, attrs){
-    if (attrs == undefined){
-      var attrs = '';
-    }
-    var elId = $(parentElem).attr('id') + '.' + panel.name;
-    var attrs = 'id="' + elId + '" panelType="' + panel.name + '" ' + attrs;
-    var html = panel.panelHTML(parentElem, attrs);
+
+  addPanel: function (parentElem, panel){
+    var elId = $(parentElem).attr('id') + '.' + panel.name + '.' + $(parentElem).children().length;
+    var attrs = 'id="' + elId + '" panelType="' + panel.name;
+    var html = panel.panelHTML(parentElem);
     parentElem.append(html);
   },
 
@@ -137,24 +135,87 @@ var divIDE = {
     var parentElem = $('#examplePanels');
     var attrs = 'style="display:none;"';
     divIDE.addPanel(parentElem, panel, attrs);
-  }
+  },
+
+  containerContents: function (elem){
+    var contents = [];
+    var children = $(elem).children('div');
+    for (var i = 0; i < children.length; i++){
+      var child = $(children[i]);
+      contents.push({
+         divType: 'container',
+         classes: child.attr('class'),
+         id: child.attr('id'),
+         style: child.attr('style'),
+         data: {
+             contents: containerContents(child),
+             width: child.css('max-width'),
+             height: child.css('max-height'),
+             flex: child.css('flex')
+         }
+      });
+    }
+    return contents;
+  },
+
+  // Setting up the common functions, general utility
+  exportLayout: function(){
+      // Build the json structure defining the layout
+      var main = $('#mainDivIDE');
+      var layout = {
+          divMain: {
+              divType: 'container', //has to be a container
+              classes: main.attr('class'),
+              id: main.attr('id'),
+              data: {
+                  contents: divIDE.containerContents(main)
+              }
+          }
+      }
+      divIDE.download('layout.json', JSON.stringify(layout));
+  },
+
+
+  importLayout: function(layout){
+      // TODO:
+  },
+
+  // Downloading a file: http://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
+  download: function(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+  },
+
+  // Looks like importing is trickier: https://www.html5rocks.com/en/tutorials/file/dndfiles/
+  // Importing/reading a single file: http://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
+  upload: function(e, callback) {
+    var file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        callback(reader.result);
+    }
+    // This function is asynchronous, which means we have no idea when it will happen. 
+    // As such, after it's finished, we need to have a callback to do something with the
+    // results. Hence the above callback function.
+    reader.readAsText(file);
+  }  
 }
 
 
 // Main panel definition
 var main = {
-  name: "main", 
-//   panelHTML: function(parentElement) {
-//     var html = '';
-//     html = '\
-//       <div id="main" class="borderStyle columnItems" panelType="main"> \
-//         <!-- All internal divs go here --> \ \
-//          <div id="CtxMenus"> \
-//            <!-- All the context menus go here --> \
-//          </div> <!-- end CtxMenus -->\
-//       </div> <!-- end main -->';
-//     return html
-//   }, 
+  name: "mainDivIDE", 
   contextMenuItems: {
     "Add Panel": {
       id: 'mainAddPanel',
@@ -259,7 +320,8 @@ layout = {
     Layout: {
       subMenus: {
         Edit: {
-          id: 'tmLayoutEdit'
+          id: 'tmLayoutEdit',
+          onclick: 'layout.layoutEdit(this)'
         },
         Save: {
           id: 'tmLayoutSave'
@@ -296,8 +358,28 @@ layout = {
     return data;
   },
 
-  ondDataLinksChanged: function(element){
+  onDataLinksChanged: function(element){
       // TODO implement
+  },
+
+  layoutEdit: function(elem) {
+    var clicks = $(elem).data('clicks');
+    if (clicks) {
+      $('.container').addClass("borderStyle");
+      $('#mainDivIDE').addClass("borderStyle");
+      $('.container').removeClass("editBorderStyle");
+      $('#mainDivIDE').removeClass("editBorderStyle");
+      $(elem).text('Edit'); 
+      $('.layoutBlock').hide();
+    } else {
+      $('.container').removeClass("borderStyle");
+      $('#mainDivIDE').removeClass("borderStyle");
+      $('.container').addClass("editBorderStyle");
+      $('#mainDivIDE').addClass("editBorderStyle");
+      $(elem).html(' &#8594; Edit');
+      $('.layoutBlock').show();
+    }
+    $(elem).data("clicks", !clicks);
   },
 
   // Other functions related to this panels
@@ -379,57 +461,18 @@ $(document).ready(function(){
   var TEST;
 
    
-  var mainID = $("#main")[0];
-  mainID.addEventListener("contextmenu", divIDE.showMenu, false);
-  mainID.addEventListener("click", divIDE.clearMenu, false);
+  var mainDivIDE = $("#mainDivIDE")[0];
+  mainDivIDE.addEventListener("contextmenu", divIDE.showMenu, false);
+  mainDivIDE.addEventListener("click", divIDE.clearMenu, false);
+  $(mainDivIDE).addClass('borderStyle rowItems divIDELayout');
+  $(mainDivIDE).attr('panelType', 'mainDivIDE')
 
 });
 
 
-function containerContents(elem){
-    var contents = [];
-    var children = $(elem).children('div');
-    for (var i = 0; i < children.length; i++){
-        var child = $(children[i]);
-        contents.push({
-           divType: 'container',
-           classes: child.attr('class'),
-           id: child.attr('id'),
-           style: child.attr('style'),
-           data: {
-               contents: containerContents(child),
-               width: child.css('max-width'),
-               height: child.css('max-height'),
-               flex: child.css('flex')
-           }
-        });
-    }
-    return contents;
-}
-
-
 // JQuery Magic
 $(document).ready(function(){
-    $('#tmLayoutEdit').click(function() {
-      var clicks = $(this).data('clicks');
-      if (clicks) {
-        $('.container').addClass("borderStyle");
-        $('#main').addClass("borderStyle");
-        $('.container').removeClass("editBorderStyle");
-        $('#main').removeClass("editBorderStyle");
-        $(this).text('Edit'); 
-        $('.layoutBlock').hide();
-      } else {
-        $('.container').removeClass("borderStyle");
-        $('#main').removeClass("borderStyle");
-        $('.container').addClass("editBorderStyle");
-        $('#main').addClass("editBorderStyle");
-        $(this).html(' &#8594; Edit');
-        $('.layoutBlock').show();
-      }
-      $(this).data("clicks", !clicks);
-    });
-
+    
     $('#tmLayoutSave').click(function(){
        exportLayout(); 
     });
@@ -442,60 +485,8 @@ $(document).ready(function(){
             console.log("Remove above debugging line.")
             importLayout(layout);
         }
-        readSingleFile(e, callback);
+        divIDE.upload(e, callback);
         });
 }); // end of document.ready
 
 
-// Setting up the common functions, general utility
-function exportLayout(){
-    // Build the json structure defining the layout
-    var main = $('#main');
-    var layout = {
-        divMain: {
-            divType: 'container', //has to be a container
-            classes: main.attr('class'),
-            id: main.attr('id'),
-            data: {
-                contents: containerContents(main)
-            }
-        }
-    }
-    download('layout.json', JSON.stringify(layout));
-}
-
-
-function importLayout(layout){
-    // TODO:
-}
-
-// Downloading a file: http://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
-function download(filename, text) {
-  var element = document.createElement('a');
-  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-  element.setAttribute('download', filename);
-
-  element.style.display = 'none';
-  document.body.appendChild(element);
-
-  element.click();
-
-  document.body.removeChild(element);
-}
-
-// Looks like importing is trickier: https://www.html5rocks.com/en/tutorials/file/dndfiles/
-// Importing/reading a single file: http://stackoverflow.com/questions/3582671/how-to-open-a-local-disk-file-with-javascript
-function readSingleFile(e, callback) {
-  var file = e.target.files[0];
-  if (!file) {
-    return;
-  }
-  var reader = new FileReader();
-  reader.onload = function (e) {
-      callback(reader.result);
-  }
-  // This function is asynchronous, which means we have no idea when it will happen. 
-  // As such, after it's finished, we need to have a callback to do something with the
-  // results. Hence the above callback function.
-  reader.readAsText(file);
-}
