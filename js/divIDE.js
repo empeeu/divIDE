@@ -1,6 +1,7 @@
 
 // Define the main API
 var divIDE = {
+  // Support for right-click context menus
   ctxTarget: undefined,
 
   showMenu: function (event){
@@ -37,9 +38,12 @@ var divIDE = {
         ctxMenus[i].style.top = "";    
     }
   },
+
+  // Container for storing registered panels
   panelTypes: {
   },
   
+  // Support for registering a new panel
   registerPanel: function (panel) {
     divIDE.panelTypes[panel.name] = panel;
     var topMenus = panel.topMenuItems;
@@ -59,6 +63,7 @@ var divIDE = {
       panel.ready();
     }
   },
+  // Functions related to adding top and context menus
   // helper function for recursion
   _addSubMenus: function (menus, idprepend){
     if (idprepend == undefined){
@@ -117,12 +122,17 @@ var divIDE = {
     parent.append(html);
   },
 
+  // Helper function that gives the ID of the template div given a panel name
   panelTemplateId: function(panel) {
     return panel.name + 'Template';
   },
 
+  // Class assigned to panel templates. This is mostly used to display:none
   panelTemplateClass: 'divIDEPanelTemplate',
 
+  // Actual function that adds a template. The reason we need to add
+  // A template of a panel into the html is so that foundation can work
+  // it's magic when the document is read.
   addPanelTemplate: function (panel) {
     var parentElem = $('#panelTemplates');
 
@@ -134,7 +144,7 @@ var divIDE = {
     parentElem[0].appendChild(div); 
   },
 
-  // TODO: This needs work for exporting
+  // TODO: This needs work for exporting, maybe should go in the definition of a layout panel
   containerContents: function (elem){
     var contents = [];
     var children = $(elem).children('div');
@@ -245,7 +255,7 @@ var main = {
     mainDivIDE.addEventListener("click", divIDE.clearMenu, false);
     $(mainDivIDE).addClass('borderStyle rowItems divIDELayout');
     $(mainDivIDE).attr('panelType', 'mainDivIDE')
-    
+
   }
 }
 
@@ -302,6 +312,7 @@ layout = {
       }
     }
   },
+
   topMenuItems : {
     Layout: {
       subMenus: {
@@ -322,7 +333,7 @@ layout = {
     }
   },
 
-  data: {
+  data: { // TODO ? maybe lives in divIDE instead?
       callbackFunctions: [],
       dataLinks: {},
   }, 
@@ -349,6 +360,7 @@ layout = {
       // TODO implement
   },
 
+  // Other functions related to this panel specifically, not part of the divIDE interface...
   layoutEdit: function(elem) {
     var clicks = $(elem).data('clicks');
     if (clicks) {
@@ -369,7 +381,6 @@ layout = {
     $(elem).data("clicks", !clicks);
   },
 
-  // Other functions related to this panels
   boxSizeChange: function (melem, wh){
       var elem = $(melem).closest('div');
       var tr = $(melem).closest('tr');
@@ -432,9 +443,6 @@ layout = {
   setPanelType: function(Element){
     var cFINISH = 'TODO'
   },
-
-
-//
 
   alignVertical: function (melem){
       elem = divIDE.ctxTarget;
