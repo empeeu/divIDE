@@ -37,14 +37,7 @@ var divIDE = {
         ctxMenus[i].style.top = "";    
     }
   },
-  panelTypes: {  
-    main: {
-      showMenu: function(panelType, event) {
-        if ($('#tmLayout').data('clicks')){
-          divIDE.showMenuType(panelType);
-        }
-      }
-    }
+  panelTypes: {
   },
   
   registerPanel: function (panel) {
@@ -59,7 +52,7 @@ var divIDE = {
     }
     var panelHTML = panel.panelHTML;
     if (panelHTML != undefined){
-      divIDE.addPanelExampleDiv(panel);
+      divIDE.addPanelTemplate(panel);
     }
     var ready = panel.ready;
     if (ready != undefined){
@@ -124,31 +117,36 @@ var divIDE = {
     parent.append(html);
   },
 
-  addPanel: function (parentElem, panel){
-    var elId = $(parentElem).attr('id') + '.' + panel.name + '.' + $(parentElem).children().length;
-    var attrs = 'id="' + elId + '" panelType="' + panel.name;
-    var html = panel.panelHTML(parentElem);
-    parentElem.append(html);
+  panelTemplateId: function(panel) {
+    return panel.name + 'Template';
   },
 
-  addPanelExampleDiv: function (panel) {
-    var parentElem = $('#examplePanels');
-    var attrs = 'style="display:none;"';
-    divIDE.addPanel(parentElem, panel, attrs);
+  panelTemplateClass: 'divIDEPanelTemplate',
+
+  addPanelTemplate: function (panel) {
+    var parentElem = $('#panelTemplates');
+
+    //make a div with an id that we can predict
+    var div = document.createElement('div');
+    $(div).addClass(divIDE.panelTemplateClass);
+    $(div).attr('id', divIDE.panelTemplateId(panel));
+    $(div).html(panel.panelHTML(parentElem));
+    parentElem[0].appendChild(div); 
   },
 
+  // TODO: This needs work for exporting
   containerContents: function (elem){
     var contents = [];
     var children = $(elem).children('div');
     for (var i = 0; i < children.length; i++){
       var child = $(children[i]);
       contents.push({
-         divType: 'container',
+         divType: $(elem).attr('panelType'),
          classes: child.attr('class'),
          id: child.attr('id'),
          style: child.attr('style'),
          data: {
-             contents: containerContents(child),
+             contents: divIDE.containerContents(child),
              width: child.css('max-width'),
              height: child.css('max-height'),
              flex: child.css('flex')
@@ -159,27 +157,6 @@ var divIDE = {
   },
 
   // Setting up the common functions, general utility
-  exportLayout: function(){
-      // Build the json structure defining the layout
-      var main = $('#mainDivIDE');
-      var layout = {
-          divMain: {
-              divType: 'container', //has to be a container
-              classes: main.attr('class'),
-              id: main.attr('id'),
-              data: {
-                  contents: divIDE.containerContents(main)
-              }
-          }
-      }
-      divIDE.download('layout.json', JSON.stringify(layout));
-  },
-
-
-  importLayout: function(layout){
-      // TODO:
-  },
-
   // Downloading a file: http://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
   download: function(filename, text) {
     var element = document.createElement('a');
@@ -260,15 +237,24 @@ var main = {
     if ($('#tmLayoutEdit').data('clicks')){
       divIDE.showMenuType(panelType);
     }
+  },
+
+  ready: function () {
+    var mainDivIDE = $("#mainDivIDE")[0];
+    mainDivIDE.addEventListener("contextmenu", divIDE.showMenu, false);
+    mainDivIDE.addEventListener("click", divIDE.clearMenu, false);
+    $(mainDivIDE).addClass('borderStyle rowItems divIDELayout');
+    $(mainDivIDE).attr('panelType', 'mainDivIDE')
+    
   }
 }
 
 // Layout panel definition
 layout = {
-  name: "Layout", 
-  panelHTML: function(parentElement, attrs) {
+  name: "DivIDELayout", 
+  panelHTML: function(parentElement) {
     var html = "\
-      <div "  + attrs + "><table class='layoutBlock'><tbody> \
+      <div><table class='layoutToolBar'><tbody> \
         <tr>\
           <td>Width:</td> \
           <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='layout.boxWidthChange(this)'> \
@@ -324,7 +310,8 @@ layout = {
           onclick: 'layout.layoutEdit(this)'
         },
         Save: {
-          id: 'tmLayoutSave'
+          id: 'tmLayoutSave',
+          onclick: 'layout.exportLayout()'
         },
         Load: {
           id: 'tmLayoutLoad',
@@ -365,19 +352,19 @@ layout = {
   layoutEdit: function(elem) {
     var clicks = $(elem).data('clicks');
     if (clicks) {
-      $('.container').addClass("borderStyle");
+      $('.' + this.name).addClass("borderStyle");
       $('#mainDivIDE').addClass("borderStyle");
-      $('.container').removeClass("editBorderStyle");
+      $('.' + this.name).removeClass("editBorderStyle");
       $('#mainDivIDE').removeClass("editBorderStyle");
       $(elem).text('Edit'); 
-      $('.layoutBlock').hide();
+      $('.layoutToolBar').hide();
     } else {
-      $('.container').removeClass("borderStyle");
+      $('.' + this.name).removeClass("borderStyle");
       $('#mainDivIDE').removeClass("borderStyle");
-      $('.container').addClass("editBorderStyle");
+      $('.' + this.name).addClass("editBorderStyle");
       $('#mainDivIDE').addClass("editBorderStyle");
       $(elem).html(' &#8594; Edit');
-      $('.layoutBlock').show();
+      $('.layoutToolBar').show();
     }
     $(elem).data("clicks", !clicks);
   },
@@ -419,13 +406,35 @@ layout = {
   },
 
   addPanel: function (){
-      var parentElem = divIDE.ctxTarget;
-      var classes = 'container contentPanel layoutPanel';
-      if ($('#tmLayoutEdit').data('clicks')){
-        classes += ' editBorderStyle'
-      }
-      divIDE.addPanel(parentElem, this, 'class="' + classes + '"');
+    parentElem = $(divIDE.ctxTarget);
+    var classes = this.name;
+    if ($('#tmLayoutEdit').data('clicks')){
+      classes += ' editBorderStyle'
+    } else {
+      classes += ' BorderStyle';
+    }
+
+    var elId = $(parentElem).attr('id') + '.' + this.name + '.' + $(parentElem).children().length;
+    
+    // Grab the template layout element
+    var template = $('#' + divIDE.panelTemplateId(this));
+
+    parentElem.append($(template).html());
+
+    var div = parentElem.children()[parentElem.children().length - 1];
+    $(div).attr('id', elId);
+    $(div).attr('panelType', this.name);
+    $(div).addClass(classes);
+
   },
+
+  // JUST SO YOU DON"T GET CONFUSED, THE REAL ACTION HAPPENS WHEN YOU SPECIFY THE PANEL TYPE FOR THE LAYOUT
+  setPanelType: function(Element){
+    var cFINISH = 'TODO'
+  },
+
+
+//
 
   alignVertical: function (melem){
       elem = divIDE.ctxTarget;
@@ -439,10 +448,52 @@ layout = {
       elem.addClass("rowItems")
   },
 
+  // Loading and Saving
+  exportLayout: function(){
+    // Build the json structure defining the layout
+    var main = $('#mainDivIDE');
+    var layout = {
+        divMain: {
+            divType: this.name, //has to be a layout panel
+            classes: main.attr('class'),
+            id: main.attr('id'),
+            panelType: main.attr('panelType'),
+            data: {
+                contents: divIDE.containerContents(main)
+            }
+        }
+    }
+    divIDE.download('layout.json', JSON.stringify(layout));
+  },
+
+  loadLayout: function(e){
+      var layoutObj;
+      function callback(result) {
+          layoutObj = JSON.parse(result);
+
+          importLayout(layoutObj);
+      }
+      divIDE.upload(e, callback);
+  },
+
+  importLayout: function(layoutObj){
+      // TODO: FINISH THIS
+      console.log(layoutObj);
+  },
+
   // Ready function
 
   ready: function(){
-    $('#tmLayoutLoad').append('<input type="file" id="tmLayoutLoadFile" style="display: none;" />');
+    $('#tmLayoutLoad').parent().append('<input type="file" id="tmLayoutLoadFile" style="display: none;" "/>');
+    $('#tmLayoutLoadFile').change(function (e) {
+      var layoutObj;
+      function callback(result) {
+        layoutObj = JSON.parse(result);
+        layout.importLayout(layoutObj);
+      }
+      divIDE.upload(e, callback);
+    });
+
   }
 }
 
@@ -454,39 +505,6 @@ divIDE.registerPanel(main);
 divIDE.registerPanel(layout);  
 
 
-// Setup whatever is required AFTER document is ready
-$(document).ready(function(){
 
-  NELEMENTS = 0;
-  var TEST;
-
-   
-  var mainDivIDE = $("#mainDivIDE")[0];
-  mainDivIDE.addEventListener("contextmenu", divIDE.showMenu, false);
-  mainDivIDE.addEventListener("click", divIDE.clearMenu, false);
-  $(mainDivIDE).addClass('borderStyle rowItems divIDELayout');
-  $(mainDivIDE).attr('panelType', 'mainDivIDE')
-
-});
-
-
-// JQuery Magic
-$(document).ready(function(){
-    
-    $('#tmLayoutSave').click(function(){
-       exportLayout(); 
-    });
-
-    $('#tmLayoutLoadFile').change(function (e) {
-        var layout;
-        function callback(result) {
-            layout = JSON.parse(result);
-            TEST = layout;  // DEBUG TODO: remove this
-            console.log("Remove above debugging line.")
-            importLayout(layout);
-        }
-        divIDE.upload(e, callback);
-        });
-}); // end of document.ready
 
 

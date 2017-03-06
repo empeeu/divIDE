@@ -4,13 +4,14 @@
     box-shadow: 5px 5px 5px #909090;
 }
 
-.container {
+.DivIDELayout {
     flex: 1;
     display: flex;
 }
 
-.contentPanel {
+.layoutToolBar {
     margin: 0  auto auto 0;
+    width: auto;
 }
 
 .columnItems {
@@ -107,4 +108,9 @@
 
 .ctxMenuStyle:not([title]):before{
     content:"\2630";
+}
+
+
+.divIDEPanelTemplate {
+    display:none;
 }
