@@ -4,14 +4,19 @@ var divIDE = {
   // Support for right-click context menus
   ctxTarget: undefined,
 
+  getCtxTarget: function (elem) {
+    var ctx_target = elem;
+    var panelType = $(elem).attr('panelType');
+    if (panelType == undefined){
+      elem = elem.closest('[paneltype]');
+    }
+    return elem
+  },
+
   showMenu: function (event){
     divIDE.clearMenu();
-    divIDE.ctxTarget = $(event.target);
+    divIDE.ctxTarget = divIDE.getCtxTarget($(event.target));
     var panelType = divIDE.ctxTarget.attr('panelType');
-    if (panelType == undefined){
-      divIDE.ctxTarget = divIDE.ctxTarget.closest('[paneltype]');
-      panelType =  divIDE.ctxTarget.attr('panelType');
-    }
     var panelMenu = divIDE.panelTypes[panelType].showMenu;
     if (panelMenu == undefined){
       divIDE.showMenuType(panelType);
@@ -53,10 +58,6 @@ var divIDE = {
     var ctxMenus = panel.contextMenuItems;
     if (ctxMenus != undefined){
       divIDE.addContextMenuItems(panel);
-    }
-    var panelHTML = panel.panelHTML;
-    if (panelHTML != undefined){
-      divIDE.addPanelTemplate(panel);
     }
     var ready = panel.ready;
     if (ready != undefined){
@@ -129,20 +130,6 @@ var divIDE = {
 
   // Class assigned to panel templates. This is mostly used to display:none
   panelTemplateClass: 'divIDEPanelTemplate',
-
-  // Actual function that adds a template. The reason we need to add
-  // A template of a panel into the html is so that foundation can work
-  // it's magic when the document is read.
-  addPanelTemplate: function (panel) {
-    var parentElem = $('#panelTemplates');
-
-    //make a div with an id that we can predict
-    var div = document.createElement('div');
-    $(div).addClass(divIDE.panelTemplateClass);
-    $(div).attr('id', divIDE.panelTemplateId(panel));
-    $(div).html(panel.panelHTML(parentElem));
-    parentElem[0].appendChild(div); 
-  },
 
   // TODO: This needs work for exporting, maybe should go in the definition of a layout panel
   containerContents: function (elem){
@@ -255,6 +242,12 @@ var main = {
     mainDivIDE.addEventListener("click", divIDE.clearMenu, false);
     $(mainDivIDE).addClass('borderStyle rowItems divIDELayout');
     $(mainDivIDE).attr('panelType', 'mainDivIDE')
+    $(mainDivIDE).append("\
+        <a href='#' class='layoutToolBarButton button' onclick='layout.alignToggle(this)'\
+          style='margin-left: 0px; display:none;'>--</a>\
+        <a href='#' class='layoutToolBarButton button' onclick='layout.addPanelButton(this)'\
+          style='margin-left: 20px; display:none;'>+</a>\
+          ");
 
   }
 }
@@ -262,9 +255,19 @@ var main = {
 // Layout panel definition
 layout = {
   name: "DivIDELayout", 
-  panelHTML: function(parentElement) {
+  panelHTML: function(elId) {
+    // Tried a button, didn't work <button class='button layoutToolBar' type='button' data-toggle='layout-toolbar'>+</button>
+    //                               <div class='layoutToolBar dropdown-pane' id='layout-toolbar' data-dropdown> 
     var html = "\
-      <div><table class='layoutToolBar'><tbody> \
+      <div> \
+        <button class='layoutToolBarButton button' type='button' data-toggle='" + elId + "example-dropdown2'>.</button>\
+        <a href='#' class='layoutToolBarButton button' onclick='layout.alignToggle(this)'\
+          style='margin-left: 20px;'>--</a>\
+        <a href='#' class='layoutToolBarButton button' onclick='layout.addPanelButton(this)'\
+          style='margin-left: 40px;'>+</a>\
+        <a href='#' class='layoutToolBarButton button' onclick='layout.removePanelButton(this)'\
+          style='margin-left: 60px;'>D</a>\
+        <table class='layoutToolBar dropdown-pane' id='" + elId + "example-dropdown2' data-dropdown><tbody> \
         <tr>\
           <td>Width:</td> \
           <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='layout.boxWidthChange(this)'> \
@@ -283,6 +286,12 @@ layout = {
                 <option value='flex'>flex</option> \
                 <option value='px'>px</option> \
                </select> \
+          </td> \
+        </tr> \
+        <tr> \
+          <td><select class='panelTypeSelector' onchange='layout.setPanelType(this)'>\
+            <option value='DivIDELayout'> --- </option>\
+            </select> \
           </td> \
         </tr> \
       </tbody></table></div>";
@@ -370,6 +379,7 @@ layout = {
       $('#mainDivIDE').removeClass("editBorderStyle");
       $(elem).text('Edit'); 
       $('.layoutToolBar').hide();
+      $('.layoutToolBarButton').hide();
     } else {
       $('.' + this.name).removeClass("borderStyle");
       $('#mainDivIDE').removeClass("borderStyle");
@@ -377,6 +387,7 @@ layout = {
       $('#mainDivIDE').addClass("editBorderStyle");
       $(elem).html(' &#8594; Edit');
       $('.layoutToolBar').show();
+      $('.layoutToolBarButton').show();
     }
     $(elem).data("clicks", !clicks);
   },
@@ -409,6 +420,11 @@ layout = {
       this.boxSizeChange(melem, 'height');
   },
 
+  removePanelButton: function(elem) {
+    divIDE.ctxTarget = divIDE.getCtxTarget(elem);
+    this.removePanel();        
+  },
+
   removePanel: function (){
       parentElem = divIDE.ctxTarget;
       if (parentElem.id != 'main'){
@@ -416,32 +432,49 @@ layout = {
       }
   },
 
+  addPanelButton: function (elem) {
+    divIDE.ctxTarget = divIDE.getCtxTarget(elem);
+    this.addPanel();    
+  },
+
   addPanel: function (){
     parentElem = $(divIDE.ctxTarget);
-    var classes = this.name;
+    var classes = this.name + ' rowItems';
     if ($('#tmLayoutEdit').data('clicks')){
       classes += ' editBorderStyle'
     } else {
       classes += ' BorderStyle';
     }
 
-    var elId = $(parentElem).attr('id') + '.' + this.name + '.' + $(parentElem).children().length;
+    var elId = $(parentElem).attr('id') + '-' + this.name + '-' + $(parentElem).children().length;
     
     // Grab the template layout element
-    var template = $('#' + divIDE.panelTemplateId(this));
+    var template = this.panelHTML(elId);
 
-    parentElem.append($(template).html());
+    parentElem.append(template);
 
     var div = parentElem.children()[parentElem.children().length - 1];
     $(div).attr('id', elId);
     $(div).attr('panelType', this.name);
     $(div).addClass(classes);
-
+    $(div).foundation();
   },
 
   // JUST SO YOU DON"T GET CONFUSED, THE REAL ACTION HAPPENS WHEN YOU SPECIFY THE PANEL TYPE FOR THE LAYOUT
   setPanelType: function(Element){
     var cFINISH = 'TODO'
+  },
+
+  alignToggle: function(elem){
+    divIDE.ctxTarget = $(divIDE.getCtxTarget(elem));
+    if (divIDE.ctxTarget.hasClass('rowItems')){
+      layout.alignVertical();
+      $(elem).text('|');
+    } else {
+      layout.alignHorizontal();
+      $(elem).text('--');
+    }
+
   },
 
   alignVertical: function (melem){
