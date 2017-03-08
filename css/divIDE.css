@@ -19,9 +19,10 @@
     display: flex;
 }
 
-/* Styles related to layout panels */
-.divIDEPanelTemplate {
-    display:none;
+/* Styles related to panels */
+.divIDEPanel {
+    display: none;
+    flex: 1;
 }
 
 /* Styles related to the top menu */

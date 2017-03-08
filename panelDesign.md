@@ -8,32 +8,28 @@ attributes describing the new panel. The schema is as follows:
 panelName = {
         name: 'panelName',  // This should also be the class name
 
-	panelHTML: function (parentElement),
+	panelHTML: function (uniqueParentElementID),
 
         panelContextMenu: function(parentElement), 
 
-        contextMenuItems: [
-           {
-             menuName: {
-               attr1: 'Value of attribute',
-               attr2: 'Value of attribute',
-               subMenus: [
-                   // Same structure as contextMenuItems
-               ]
-             }
-           }
-        ]
-        topMenuItems: [
-           {
-             menuName: {
-               attr1: 'Value of attribute',
-               attr2: 'Value of attribute',
-               subMenus: [
-                   // Same structure as topMenuItems
-               ]
-             }
-           }
-        ],
+        contextMenuItems: {
+            menuName: {
+            attr1: 'Value of attribute',
+            attr2: 'Value of attribute',
+            subMenus: {
+                // Same structure as contextMenuItems
+            }
+          }
+        },
+        topMenuItems: {
+          menuName: {
+            attr1: 'Value of attribute',
+            attr2: 'Value of attribute',
+            subMenus: {
+                // Same structure as topMenuItems
+            }
+          } 
+        },
 
         onDataLinkChange: {},  // When linked data changes, do this update
                                // This function goes into the 

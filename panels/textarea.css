@@ -1,0 +1,10 @@
+.divIDETextArea {
+    box-sizing: border-box;         /* For IE and modern versions of Chrome */
+    -moz-box-sizing: border-box;    /* For Firefox                          */
+    -webkit-box-sizing: border-box; /* For Safari                           */
+    resize: none;
+    outline: none;
+    height:auto;
+    width:100%;
+    margin-bottom: 0;
+}
