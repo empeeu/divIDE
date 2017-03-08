@@ -15,7 +15,8 @@ TODO:
     * ~~Plus on the left~~
     * ~~minus on the right~~
     * ~~size in the middle~~
-* As a proof of concept, add a text box
+* ~~As a proof of concept, add a text box~~
+* See if one text box can display the edits from another text box
 * As a proof of concept, add a line plot box
 * Sort out the data sharing between the text box and the plot box
 * Sort out websockets?
