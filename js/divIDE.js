@@ -27,9 +27,12 @@ var divIDE = {
   },
 
   showMenuType: function(panelType){
+      var ctxMenu = $("#" + panelType + "CtxMenu")[0];
+      if (ctxMenu == undefined){
+        return;
+      }
       event.stopPropagation();
       event.preventDefault();
-      var ctxMenu = $("#" + panelType + "CtxMenu")[0];
       ctxMenu.style.display = "block";
       ctxMenu.style.left = (event.pageX - 10)+"px";
       ctxMenu.style.top = (event.pageY - 60)+"px";
@@ -47,6 +50,9 @@ var divIDE = {
 
   // Container for storing registered panels
   panelTypes: {
+  },
+
+  panelDataLinks: {  // Container for storing data links between panels
   },
   
   // Support for registering a new panel
@@ -125,6 +131,16 @@ var divIDE = {
     parent.append(html);
   },
 
+  // Data Links functions, uses panelDataLinks
+  onLinkDataChange: function(elem, key){
+    var parentElem = $(divIDE.getCtxTarget(elem));
+    var panelType = parentElem.attr('panelType');
+    // TODO Finish this
+
+  },
+
+
+  // Saving and Loading functions
   // TODO: This needs work for exporting, maybe should go in the definition of a layout panel
   containerContents: function (elem){
     var contents = [];
@@ -337,10 +353,11 @@ layout = {
     }
   },
 
-  data: { // TODO ? maybe lives in divIDE instead?
-      callbackFunctions: [],
-      dataLinks: {},
-  }, 
+  showMenu: function(panelType, event) {
+    if ($('#tmLayoutEdit').data('clicks')){
+      divIDE.showMenuType(panelType);
+    }
+  },
 
   getPanelData: function(elem) {
     var trs = $(elem).find('tr');
@@ -360,9 +377,6 @@ layout = {
     return data;
   },
 
-  onDataLinksChanged: function(element){
-      // TODO implement
-  },
 
   // Other functions related to this panel specifically, not part of the divIDE interface...
   panelTypeSelectorOptions: '', // The registered panel types will go here
@@ -473,9 +487,19 @@ layout = {
 
   setPanelType: function(elem){
     var parentElem = $(divIDE.getCtxTarget(elem));
+    var panelType = $(elem).val();
+    var panelDiv = parentElem.find('[panelType]');
+    if (panelType == layout.name) {
+      // remove any existing divs
+      panelDiv.remove();
+      return;
+    } else if (panelType == panelDiv.attr('panelType')) {
+      return;
+    }
     var div = document.createElement('div');
-    var panel = divIDE.panelTypes[$(elem).val()];
-    $(div).attr('panelType', $(elem).val());
+    var panel = divIDE.panelTypes[panelType];
+    $(div).attr('panelType', panelType);
+    $(div).attr('id', parentElem.attr('id') + '-container')
     $(div).addClass('divIDEPanel');
     $(div).addClass(panel.name);
     $(div).html(panel.panelHTML(parentElem.attr('id')));
