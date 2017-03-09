@@ -2,7 +2,9 @@ textArea = {
     name: "TextArea", 
     panelHTML: function(uniqueParentElementID) {
         var html = '';
-        html += "<textarea class='divIDETextArea'></textarea>"
+        html += "<textarea class='divIDETextArea'\
+                     onchange=\"divIDE.onLinkDataChange(this, 'text')\">\
+                 </textarea>"
         return html;
     }, 
 /*    panelContextMenu: function(parentElement) {
@@ -11,17 +13,21 @@ textArea = {
     topMenuItems : {
         
     },*/
-    data: {
-        callbackFunctions: [],
-        dataLinks: {
-        },
+
+    getPanelData: function(parentElement, key){
+      if (key == 'text'){
+         var ta = $(parentElement).find('textarea');
+         return ta.text();  
+      } else { 
+         return;
+      }
     },
-    getPanelData: function(panelElement){
-      var ta = $(panelElement).find('textarea');
-      return ta.text();  
-    },
-    onDataLinksChanges: function(element){
-        // TODO implement
+
+    setPanelData: function(parentElement, data, key) {
+      if (key == 'text'){
+         var ta = $(parentElement).find('textarea');
+         ta.text(data);  
+      }
     }
 }
 
