@@ -3,8 +3,7 @@ textArea = {
     panelHTML: function(uniqueParentElementID) {
         var html = '';
         html += "<textarea class='divIDETextArea'\
-                     onchange=\"divIDE.onLinkDataChange(this, 'text')\">\
-                 </textarea>"
+                 oninput=\"divIDE.onLinkDataChange(this, 'text')\"></textarea>"
         return html;
     }, 
 /*    panelContextMenu: function(parentElement) {
@@ -17,7 +16,7 @@ textArea = {
     getPanelData: function(parentElement, key){
       if (key == 'text'){
          var ta = $(parentElement).find('textarea');
-         return ta.text();  
+         return ta.val();  
       } else { 
          return;
       }
@@ -26,7 +25,7 @@ textArea = {
     setPanelData: function(parentElement, data, key) {
       if (key == 'text'){
          var ta = $(parentElement).find('textarea');
-         ta.text(data);  
+         ta.val(data);  
       }
     }
 }

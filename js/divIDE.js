@@ -54,6 +54,10 @@ var divIDE = {
 
   panelDataLinks: {  // Container for storing data links between panels
   },
+
+  panelDataChangeId: {
+
+  },
   
   // Support for registering a new panel
   registerPanel: function (panel) {
@@ -135,8 +139,27 @@ var divIDE = {
   onLinkDataChange: function(elem, key){
     var parentElem = $(divIDE.getCtxTarget(elem));
     var panelType = parentElem.attr('panelType');
-    // TODO Finish this
+    var id = parentElem.attr('id');
+    if (divIDE.panelDataChangeId == id){
+      return;
+    }
+    if (divIDE.panelDataLinks[id] == undefined){
+      return;
+    }
 
+    divIDE.panelDataChangeId = id;
+
+    var data = divIDE.panelTypes[panelType].getPanelData(parentElem, key);
+    
+    var links = divIDE.panelDataLinks[id];
+    for (link in links) {
+      var linkElem = $('#'+link);
+      var linkPanelType = linkElem.attr('panelType');
+
+      divIDE.panelTypes[linkPanelType].setPanelData(linkElem, data, links[link]);
+    }
+
+    divIDE.panelDataChangeId = undefined;
   },
 
 
