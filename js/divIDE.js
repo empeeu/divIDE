@@ -293,14 +293,18 @@ layout = {
     //                               <div class='layoutToolBar dropdown-pane' id='layout-toolbar' data-dropdown> 
     var html = "\
       <div> \
-        <button class='layoutToolBarButton button' type='button' data-toggle='" + elId + "example-dropdown2'>.</button>\
+        <a href='#' class='layoutToolBarButton button hollow secondary'\
+          style='margin-top: 20px;'>" + elId.split('-')[1] + "</a>\
+        <button class='layoutToolBarButton button' type='button' data-toggle='" + elId + "sizeDrop'>.</button>\
         <a href='#' class='layoutToolBarButton button' onclick='layout.alignToggle(this)'\
           style='margin-left: 20px;'>--</a>\
         <a href='#' class='layoutToolBarButton button' onclick='layout.addPanelButton(this)'\
           style='margin-left: 40px;'>+</a>\
         <a href='#' class='layoutToolBarButton button' onclick='layout.removePanelButton(this)'\
           style='margin-left: 60px;'>D</a>\
-        <table class='layoutToolBar dropdown-pane' id='" + elId + "example-dropdown2' data-dropdown><tbody> \
+        <button class='layoutToolBarButton button' type='button' style='margin-left: 80px;'\
+          data-toggle='" + elId + "linkDrop'>8</button>\
+        <table class='layoutToolBar dropdown-pane' id='" + elId + "sizeDrop' data-dropdown><tbody> \
         <tr>\
           <td>Width:</td> \
           <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='layout.boxWidthChange(this)'> \
@@ -328,7 +332,11 @@ layout = {
             </select> \
           </td> \
         </tr> \
-      </tbody></table></div>";
+      </tbody></table>\
+      <table class='layoutToolBar dropdown-pane layoutLinkSetup' id='" + elId + "linkDrop' data-dropdown><tbody> \
+      <tr><td>HEY This needs some thought</td></tr>\
+      </tbody></table>\
+      </div>";
     return html
   }, 
 
