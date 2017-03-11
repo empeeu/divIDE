@@ -55,9 +55,7 @@ var divIDE = {
   panelDataLinks: {  // Container for storing data links between panels
   },
 
-  panelDataChangeId: {
-
-  },
+  panelDataChangeId: undefined,  // To avoid circular references when data changes
   
   // Support for registering a new panel
   registerPanel: function (panel) {
@@ -140,26 +138,79 @@ var divIDE = {
     var parentElem = $(divIDE.getCtxTarget(elem));
     var panelType = parentElem.attr('panelType');
     var id = parentElem.attr('id');
-    if (divIDE.panelDataChangeId == id){
-      return;
-    }
-    if (divIDE.panelDataLinks[id] == undefined){
-      return;
-    }
+    if (divIDE.panelDataChangeId != id && divIDE.panelDataLinks[id] != undefined){
+      var changeLock=true;
+      if (divIDE.panelDataChangeId == undefined){
+        divIDE.panelDataChangeId = id;
+        changelock=false;
+      }
+      var data = divIDE.panelTypes[panelType].getPanelData(parentElem, key);
 
-    divIDE.panelDataChangeId = id;
+      var links = divIDE.panelDataLinks[id][key];
+      for (link in links) {
+        var linkElem = $('#'+link);
+        var linkPanelType = linkElem.attr('panelType');
+        // Why the loop below? Well, the same from data can map to 
+        // multiple keys in the to data. 
+        // Think setting both the x and y data for a plot using the same input
+        if (links[link] != undefined &&
+           linkElem.attr('id') != divIDE.panelDataChangeId){
+          for (var i=0; i < links[link].length; i++){
+            divIDE.panelTypes[linkPanelType].setPanelData(linkElem, data, links[link][i]);
+          // NEED TO TRY AND FIGURE OUT HOW TO GET THIS LINE WORKING
+//             divIDE.onLinkDataChange(linkElem, links[link][i]);
+          }
+        }
+      }
+    }
+    if (changeLock==false || id == divIDE.panelDataChangeId){
+      divIDE.panelDataChangeId = undefined;  
+    }    
+  },
 
-    var data = divIDE.panelTypes[panelType].getPanelData(parentElem, key);
+  addDataLink: function(elem){
+    elem = $(elem);
+    var parentElem = elem.closest('div');
+    var toPanelKey = parentElem.find('.toPanelKey');
+    var fromPanelLink = parentElem.find('.fromPanelLink');
+    var fromPanelKey = parentElem.find('.fromPanelKey');
     
-    var links = divIDE.panelDataLinks[id];
-    for (link in links) {
-      var linkElem = $('#'+link);
-      var linkPanelType = linkElem.attr('panelType');
-
-      divIDE.panelTypes[linkPanelType].setPanelData(linkElem, data, links[link]);
+    if (fromPanelKey.val() == '-1' && fromPanelLink.val() != '-1'){
+      var panelType = $('#divIDEPanelNumber-' +
+        fromPanelLink.val() + '-container').attr('panelType');
+      if (panelType != undefined){
+        var panel = divIDE.panelTypes[panelType];  
+        fromPanelKey.html('<option value="-1"> --- </option>')
+        var linkdatakeys = panel.linkDataKeys; 
+        if (linkdatakeys != undefined){
+          for (var i=0; i < linkdatakeys.length; i++){
+            var key = linkdatakeys[i];
+            fromPanelKey.append('<option value="' + key + '">' + key + '</option>');
+          }
+        }
+      }
     }
 
-    divIDE.panelDataChangeId = undefined;
+    if (toPanelKey.val() == "-1" || fromPanelKey.val() == "-1" || fromPanelLink.val() == "-1"){
+      return;
+    }
+
+    var fromID = 'divIDEPanelNumber-' + fromPanelLink.val() + '-container';
+    var dl = divIDE.panelDataLinks[fromID];
+    if (dl == undefined){
+      divIDE.panelDataLinks[fromID] = {};
+      dl = divIDE.panelDataLinks[fromID];
+    }
+    var dlk = dl[fromPanelKey];
+    if (dlk == undefined){
+      dl[fromPanelKey.val()] = {};
+      dlk = dl[fromPanelKey.val()];
+    }
+    var dlkt = dlk[parentElem.attr('id') + '-container'];
+    if (dlkt == undefined){
+      dlk[parentElem.attr('id') + '-container'] = [];
+    }
+    dlk[parentElem.attr('id') + '-container'].push(toPanelKey.val());
   },
 
 
@@ -302,8 +353,8 @@ layout = {
           style='margin-left: 40px;'>+</a>\
         <a href='#' class='layoutToolBarButton button' onclick='layout.removePanelButton(this)'\
           style='margin-left: 60px;'>D</a>\
-        <button class='layoutToolBarButton button' type='button' style='margin-left: 80px;'\
-          data-toggle='" + elId + "linkDrop'>8</button>\
+        <button class='layoutToolBarButton button layoutLinkButton' type='button' \
+          style='margin-left: 80px;' data-toggle='" + elId + "linkDrop'>8</button>\
         <table class='layoutToolBar dropdown-pane' id='" + elId + "sizeDrop' data-dropdown><tbody> \
         <tr>\
           <td>Width:</td> \
@@ -334,7 +385,24 @@ layout = {
         </tr> \
       </tbody></table>\
       <table class='layoutToolBar dropdown-pane layoutLinkSetup' id='" + elId + "linkDrop' data-dropdown><tbody> \
-      <tr><td>HEY This needs some thought</td></tr>\
+      <tr><th>To Key</th><th>From Panel #</th><th>From Key</th></tr>\
+      <tr>\
+        <td>\
+        <select class='toPanelKey' onchange='divIDE.addDataLink(this)'> \
+                <option value='-1'>---</option> \
+               </select> \
+        </td>\
+        <td>\
+        <select class='fromPanelLink' onchange='divIDE.addDataLink(this)'> \
+                <option value='-1'>---</option> \
+               </select> \
+        </td>\
+        <td>\
+        <select class='fromPanelKey' onchange='divIDE.addDataLink(this)'> \
+                <option value='-1'>---</option> \
+               </select> \
+        </td>\
+      </tr>\
       </tbody></table>\
       </div>";
     return html
@@ -481,7 +549,21 @@ layout = {
 
   removePanel: function (){
       parentElem = divIDE.ctxTarget;
-      if (parentElem.id != 'main'){
+      var id = $(parentElem).attr('id');
+      // if it has any children, let's grab those ids as well
+      var childElems = $(parentElem).find('[panelType=DivIDELayout]');
+
+      // Remove this panel number as a data link option
+       var panellinks = $('.fromPanelLink');
+       var oprem = panellinks.find('option[value=' + id.split('-')[1] + ']');
+       oprem.remove();
+       for (var i = 0; i < childElems.length; i++){
+         id = $(childElems[i]).attr('id').split('-')[1];
+         var oprem = panellinks.find('option[value=' + id + ']');
+         oprem.remove();
+       }
+
+      if (id != 'main'){
           parentElem.remove();
       }
   },
@@ -502,7 +584,10 @@ layout = {
 
 //     var elId = $(parentElem).attr('id') + '-' + $(parentElem).children().length;
     var elId = "divIDEPanelNumber-" + divIDE.nPanels;
-    divIDE.nPanels += 1;
+
+    // Add this as a potential link for other panels
+    var lls = $('.layoutLinkSetup').find('.fromPanelLink');
+    lls.append('<option value="' + divIDE.nPanels + '">' + divIDE.nPanels + '</option>')
     
     // Grab the template layout element
     var template = this.panelHTML(elId);
@@ -514,6 +599,18 @@ layout = {
     $(div).attr('panelType', this.name);
     $(div).addClass(classes);
     $(div).foundation();
+
+    // Populate this panel's link options
+    lls = $(div).find('.fromPanelLink');
+    var activePanels = $('.DivIDELayout[panelType=DivIDELayout]');
+    for (var i=0; i<activePanels.length; i++){
+      var key = $(activePanels[i]).attr('id').split('-')[1];
+      if (key != divIDE.nPanels){
+        lls.append('<option value="' + key + '">' + key + '</option>');
+      }
+    }
+
+    divIDE.nPanels += 1;  // Increment the number of panels this document has seen
   },
 
   setPanelType: function(elem){
@@ -525,6 +622,7 @@ layout = {
       panelDiv.remove();
       return;
     } else if (panelType == panelDiv.attr('panelType')) {
+      // Allready this type
       return;
     }
     var div = document.createElement('div');
@@ -535,6 +633,15 @@ layout = {
     $(div).addClass(panel.name);
     $(div).html(panel.panelHTML(parentElem.attr('id')));
     parentElem.append(div);
+
+    // Add key options to data links toolbar
+    var datakey = parentElem.find('.toPanelKey');
+    var linkdatakeys = panel.linkDataKeys; 
+    for (var i=0; i < linkdatakeys.length; i++){
+      var key = linkdatakeys[i];
+      datakey.append('<option val="' + key + '">' + key + '</option>');
+    }
+
   },
 
   alignToggle: function(elem){

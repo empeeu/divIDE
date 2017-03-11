@@ -13,6 +13,10 @@ textArea = {
         
     },*/
 
+    linkDataKeys: [
+        'text'
+    ],
+
     getPanelData: function(parentElement, key){
       if (key == 'text'){
          var ta = $(parentElement).find('textarea');
