@@ -81,9 +81,9 @@ var divIDE = {
       var idprepend = '';
     }
     var html = '';
-    for (key in menus){
+    for (var key in menus){
       var attrs = '';
-      for (attrkey in menus[key]){
+      for (var attrkey in menus[key]){
         if (attrkey == 'subMenus'){
           continue
         }
@@ -147,18 +147,17 @@ var divIDE = {
       var data = divIDE.panelTypes[panelType].getPanelData(parentElem, key);
 
       var links = divIDE.panelDataLinks[id][key];
-      for (link in links) {
+      for (var link in links) {
         var linkElem = $('#'+link);
         var linkPanelType = linkElem.attr('panelType');
         // Why the loop below? Well, the same from data can map to 
         // multiple keys in the to data. 
         // Think setting both the x and y data for a plot using the same input
         if (links[link] != undefined &&
-           linkElem.attr('id') != divIDE.panelDataChangeId){
+               linkElem.attr('id') != divIDE.panelDataChangeId){
           for (var i=0; i < links[link].length; i++){
             divIDE.panelTypes[linkPanelType].setPanelData(linkElem, data, links[link][i]);
-          // NEED TO TRY AND FIGURE OUT HOW TO GET THIS LINE WORKING
-//             divIDE.onLinkDataChange(linkElem, links[link][i]);
+            divIDE.onLinkDataChange(linkElem, links[link][i]);
           }
         }
       }
@@ -481,7 +480,7 @@ layout = {
   panelTypeSelectorOptions: '', // The registered panel types will go here
 
   populatePanelTypeSelectorOptions: function (){
-    for (key in divIDE.panelTypes) {
+    for (var key in divIDE.panelTypes) {
       if (key == main.name || key == layout.name){
         continue;
       }
