@@ -138,8 +138,8 @@ var divIDE = {
     var parentElem = $(divIDE.getCtxTarget(elem));
     var panelType = parentElem.attr('panelType');
     var id = parentElem.attr('id');
+    var changeLock=true;
     if (divIDE.panelDataChangeId != id && divIDE.panelDataLinks[id] != undefined){
-      var changeLock=true;
       if (divIDE.panelDataChangeId == undefined){
         divIDE.panelDataChangeId = id;
         changelock=false;
@@ -200,7 +200,7 @@ var divIDE = {
       divIDE.panelDataLinks[fromID] = {};
       dl = divIDE.panelDataLinks[fromID];
     }
-    var dlk = dl[fromPanelKey];
+    var dlk = dl[fromPanelKey.val()];
     if (dlk == undefined){
       dl[fromPanelKey.val()] = {};
       dlk = dl[fromPanelKey.val()];
