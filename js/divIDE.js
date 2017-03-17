@@ -9,7 +9,7 @@ var divIDE = {
     var ctx_target = elem;
     var panelType = $(elem).attr('panelType');
     if (panelType == undefined){
-      elem = elem.closest('[paneltype]');
+      var elem = elem.closest('[paneltype]');
     }
     return elem
   },
@@ -168,7 +168,7 @@ var divIDE = {
   },
 
   addDataLink: function(elem){
-    elem = $(elem);
+    var elem = $(elem);
     var parentElem = elem.closest('div');
     var toPanelKey = parentElem.find('.toPanelKey');
     var fromPanelLink = parentElem.find('.fromPanelLink');
@@ -214,26 +214,60 @@ var divIDE = {
 
 
   // Saving and Loading functions
-  // TODO: This needs work for exporting, maybe should go in the definition of a layout panel
-  containerContents: function (elem){
-    var contents = [];
-    var children = $(elem).children('div');
+  getPanelContents: function (elem){
+    var elem = $(elem);
+    var panelType = elem.attr('panelType')
+    var contents = {data: {},
+                    children: {},
+                    attrs: {
+                      panelType: elem.attr('panelType'),
+                      classes: elem.attr('class'),
+                      id: elem.attr('id'),
+//                       style: elem.attr('style'),
+                    }
+    };
+    var dataKeys = divIDE.panelTypes[panelType].linkDataKeys;
+    if (dataKeys != undefined){
+      for (var i=0; i < dataKeys.length; i++){
+        var key = dataKeys[i];
+        contents.data[key] = divIDE.panelTypes[panelType].getPanelData(elem, key);
+      }
+    }
+    var children = $(elem).children('div[panelType]');
     for (var i = 0; i < children.length; i++){
       var child = $(children[i]);
-      contents.push({
-         divType: $(elem).attr('panelType'),
-         classes: child.attr('class'),
-         id: child.attr('id'),
-         style: child.attr('style'),
-         data: {
-             contents: divIDE.containerContents(child),
-             width: child.css('max-width'),
-             height: child.css('max-height'),
-             flex: child.css('flex')
-         }
-      });
+      contents.children[$(child).attr('id')] = divIDE.getPanelContents(child);
     }
     return contents;
+  },
+
+  setPanelContents: function(layoutObj, key){
+    var elem = $('#' + key);
+    var panelType = layoutObj.attrs.panelType
+
+    // Set data
+    if (divIDE.panelTypes[panelType].setPanelData != undefined){
+      for (var dataKey in layoutObj.data){
+        divIDE.panelTypes[panelType].setPanelData(
+          elem,
+          layoutObj.data[dataKey],
+          dataKey
+        );  
+      }
+    }
+
+    for (var childKey in layoutObj.children){
+      var child = layoutObj.children[childKey];
+      var cPanelType = child.attrs.panelType;
+      if (cPanelType == layout.name){
+        divIDE.ctxTarget = divIDE.getCtxTarget(elem);
+        layout.addPanel(child.attrs.id);
+        $('#'+child.attrs.id).attr('class', child.attrs.classes);
+      } else {
+        layout.setPanelType(elem);
+      }
+      divIDE.setPanelContents(child, childKey);
+    }
   },
 
   // Setting up the common functions, general utility
@@ -457,22 +491,42 @@ layout = {
     }
   },
 
-  getPanelData: function(elem) {
-    var trs = $(elem).find('tr');
-    var data = {};
-    for (var i=0; i < trs.length; i++){
-      var val = $(trs[i]).find('input').val();
-      var unit = $(trs[i]).find('select').val();
-      var key = '';
-      if ($(trs[i]).text().toLowerCase().includes('width')){
-        key = 'width';
-      } else if ($(trs[i]).text().toLowerCase().includes('height')) {
-        key = 'heigth';
-      }
-      data[key] = {size: val, unit: unit};
+  linkDataKeys: [
+      'width',
+      'height'
+  ],
 
+  getPanelData: function(elem, key) {
+    var trs = $(elem).find('tr');
+    var data;
+    var i = 0;
+    if (key == 'width'){
+      i = 0;
     }
+    if (key == 'height'){
+      i = 1;
+    }
+    var val = $(trs[i]).find('input').val();
+    var unit = $(trs[i]).find('select').val();
+    data = {size: val, unit: unit};
+
     return data;
+  },
+
+  setPanelData: function(parentElem, data, key){
+    var trs = $(parentElem).find('tr');
+    var i = 0;
+    if (key == 'width'){
+      i = 0;
+    }
+    if (key == 'height'){
+      i = 1;
+    }
+    $(trs[i]).find('input').val(parseInt(data.size));
+    layout.boxWidthChange($(trs[i]).find('input'));
+    $(trs[i]).find('select').val(data.unit);
+    layout.boxWidthChange($(trs[i]).find('select'));
+
   },
 
 
@@ -572,7 +626,7 @@ layout = {
     this.addPanel();    
   },
 
-  addPanel: function (){
+  addPanel: function (elId){
     parentElem = $(divIDE.ctxTarget);
     var classes = this.name + ' rowItems';
     if ($('#tmLayoutEdit').data('clicks')){
@@ -582,8 +636,9 @@ layout = {
     }
 
 //     var elId = $(parentElem).attr('id') + '-' + $(parentElem).children().length;
-    var elId = "divIDEPanelNumber-" + divIDE.nPanels;
-
+    if (elId == undefined){
+      var elId = "divIDEPanelNumber-" + divIDE.nPanels;
+    }
     // Add this as a potential link for other panels
     var lls = $('.layoutLinkSetup').find('.fromPanelLink');
     lls.append('<option value="' + divIDE.nPanels + '">' + divIDE.nPanels + '</option>')
@@ -656,13 +711,13 @@ layout = {
   },
 
   alignVertical: function (melem){
-      elem = divIDE.ctxTarget;
+      var elem = divIDE.ctxTarget;
       elem.removeClass("rowItems")
       elem.addClass("columnItems")
   },
 
   alignHorizontal: function (melem){
-      elem = divIDE.ctxTarget;
+      var elem = divIDE.ctxTarget;
       elem.removeClass("columnItems")
       elem.addClass("rowItems")
   },
@@ -672,15 +727,9 @@ layout = {
     // Build the json structure defining the layout
     var main = $('#mainDivIDE');
     var layout = {
-        divMain: {
-            divType: this.name, //has to be a layout panel
-            classes: main.attr('class'),
-            id: main.attr('id'),
-            panelType: main.attr('panelType'),
-            data: {
-                contents: divIDE.containerContents(main)
-            }
-        }
+      mainDivIDE: divIDE.getPanelContents(main),
+      panelDataLinks: divIDE.panelDataLinks,
+      nPanels: divIDE.nPanels
     }
     divIDE.download('layout.json', JSON.stringify(layout));
   },
@@ -689,15 +738,19 @@ layout = {
       var layoutObj;
       function callback(result) {
           layoutObj = JSON.parse(result);
-
           importLayout(layoutObj);
       }
       divIDE.upload(e, callback);
   },
 
   importLayout: function(layoutObj){
-      // TODO: FINISH THIS
-      console.log(layoutObj);
+      divIDE.panelDataLinks = layoutObj.panelDataLinks;
+      divIDE.nPanels = layoutObj.nPanels;
+      // clear everything
+      $('#mainDivIDE').html('');
+      divIDE.setPanelContents(layoutObj.mainDivIDE, 'mainDivIDE');
+      layout.layoutEdit($('#tmLayoutEdit'));
+      layout.layoutEdit($('#tmLayoutEdit'));
   },
 
   // Ready function
