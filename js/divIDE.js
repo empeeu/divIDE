@@ -221,7 +221,7 @@ var divIDE = {
                     children: {},
                     attrs: {
                       panelType: elem.attr('panelType'),
-                      classes: elem.attr('class'),
+                      class: elem.attr('class'),
                       id: elem.attr('id'),
 //                       style: elem.attr('style'),
                     }
@@ -241,9 +241,16 @@ var divIDE = {
     return contents;
   },
 
-  setPanelContents: function(layoutObj, key){
+  setPanelContents: function(layoutObj){
+    var key = layoutObj.attrs['id'];
     var elem = $('#' + key);
     var panelType = layoutObj.attrs.panelType
+
+    // Set attrs
+    for (var attr in layoutObj.attrs){
+//       console.log(key + ' ' + attr + ': ' + layoutObj.attrs[attr] )
+      elem.attr(attr, layoutObj.attrs[attr]);
+    }
 
     // Set data
     if (divIDE.panelTypes[panelType].setPanelData != undefined){
@@ -264,9 +271,11 @@ var divIDE = {
         layout.addPanel(child.attrs.id);
         $('#'+child.attrs.id).attr('class', child.attrs.classes);
       } else {
-        layout.setPanelType(elem);
+        var selectorElem = elem.find('.panelTypeSelector');
+        selectorElem.val(cPanelType);
+        layout.setPanelType(selectorElem);
       }
-      divIDE.setPanelContents(child, childKey);
+      divIDE.setPanelContents(child);
     }
   },
 
@@ -747,8 +756,12 @@ layout = {
       divIDE.panelDataLinks = layoutObj.panelDataLinks;
       divIDE.nPanels = layoutObj.nPanels;
       // clear everything
-      $('#mainDivIDE').html('');
-      divIDE.setPanelContents(layoutObj.mainDivIDE, 'mainDivIDE');
+      $('#mainDivIDE').html('\
+        <a href="#" class="layoutToolBarButton button" onclick="layout.alignToggle(this)"\
+         style="margin-left: 0px;">--</a>\
+        <a href="#" class="layoutToolBarButton button" onclick="layout.addPanelButton(this)"\
+         style="margin-left: 20px;">+</a>');
+      divIDE.setPanelContents(layoutObj.mainDivIDE);
       layout.layoutEdit($('#tmLayoutEdit'));
       layout.layoutEdit($('#tmLayoutEdit'));
   },
