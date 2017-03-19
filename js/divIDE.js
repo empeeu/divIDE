@@ -488,6 +488,10 @@ layout = {
         Load: {
           id: 'tmLayoutLoad',
           onclick: "$('#tmLayoutLoadFile').click()",
+        },
+        Admin: {
+          id: 'tmLayoutAdmin',
+          onclick: "layout.layoutAdmin(this)",
         }
       },
       id: "tmLayout"
@@ -553,6 +557,10 @@ layout = {
   },
 
   layoutEdit: function(elem) {
+    // Turn off layout admin mode if it is active
+    if ($('#tmLayoutAdmin').data('clicks')){
+      layout.layoutAdmin($('#tmLayoutAdmin'));
+    }
     var clicks = $(elem).data('clicks');
     if (clicks) {
       $('.' + this.name).addClass("borderStyle");
@@ -575,6 +583,25 @@ layout = {
     }
     $(elem).data("clicks", !clicks);
   },
+
+  layoutAdmin: function(elem) {
+    // Turn off layout edit mode if it is active
+    if ($('#tmLayoutEdit').data('clicks')){
+      layout.layoutEdit($('#tmLayoutEdit'));
+    }
+    var clicks = $(elem).data('clicks');
+    if (clicks) {
+      $(elem).text('Admin'); 
+      $('.layoutAdmin').hide();
+      $('.divIDEPanel').css('display', 'flex');
+    } else {
+      $(elem).html(' &#8594; Admin');
+      $('.layoutAdmin').show();
+      $('.divIDEPanel').hide();
+    }
+    $(elem).data("clicks", !clicks);
+  },
+
 
   boxSizeChange: function (melem, wh){
       var elem = $(melem).closest('div');
