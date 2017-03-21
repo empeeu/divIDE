@@ -55,6 +55,9 @@ var divIDE = {
   panelDataLinks: {  // Container for storing data links between panels
   },
 
+  panelJSData: {  // Container for storing javascript data objects for containers
+  },
+
   panelDataChangeId: undefined,  // To avoid circular references when data changes
   
   // Support for registering a new panel
@@ -547,6 +550,7 @@ layout = {
   panelTypeSelectorOptions: '', // The registered panel types will go here
 
   populatePanelTypeSelectorOptions: function (){
+    layout.panelTypeSelectorOptions = '';
     for (var key in divIDE.panelTypes) {
       if (key == main.name || key == layout.name){
         continue;
@@ -592,12 +596,12 @@ layout = {
     var clicks = $(elem).data('clicks');
     if (clicks) {
       $(elem).text('Admin'); 
-      $('.layoutAdmin').hide();
-      $('.divIDEPanel').css('display', 'flex');
+      $('.divIDEAdmin').hide();
+//       $('.divIDEPanel').css('display', 'flex');
     } else {
       $(elem).html(' &#8594; Admin');
-      $('.layoutAdmin').show();
-      $('.divIDEPanel').hide();
+      $('.divIDEAdmin').show();
+//       $('.divIDEPanel').hide();
     }
     $(elem).data("clicks", !clicks);
   },
@@ -682,6 +686,7 @@ layout = {
     // Grab the template layout element
     var template = this.panelHTML(elId);
 
+
     parentElem.append(template);
 
     var div = parentElem.children()[parentElem.children().length - 1];
@@ -712,17 +717,29 @@ layout = {
       panelDiv.remove();
       return;
     } else if (panelType == panelDiv.attr('panelType')) {
-      // Allready this type
+      // Already this type
       return;
     }
-    var div = document.createElement('div');
+    var div;
     var panel = divIDE.panelTypes[panelType];
+
+    div = document.createElement('div');
     $(div).attr('panelType', panelType);
     $(div).attr('id', parentElem.attr('id') + '-container')
     $(div).addClass('divIDEPanel');
     $(div).addClass(panel.name);
     $(div).html(panel.panelHTML(parentElem.attr('id')));
     parentElem.append(div);
+    
+    if (panel.panelAdminHTML != undefined){
+      var div2 = document.createElement('div');
+      $(div2).attr('panelType', panelType);
+      $(div2).attr('id', parentElem.attr('id') + '-container-admin')
+      $(div2).addClass('divIDEAdmin');
+      $(div2).addClass(panel.name);
+      $(div2).html(panel.panelAdminHTML(parentElem.attr('id')));
+      $(div).append(div2);
+    }
 
     // Add key options to data links toolbar
     var datakey = parentElem.find('.toPanelKey');

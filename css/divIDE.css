@@ -24,6 +24,10 @@
     display: none;
     flex: 1;
 }
+.divIDEAdmin {
+    display: none;
+    flex: 1;
+}
 
 /* Styles related to the top menu */
 
