@@ -76,7 +76,7 @@ pointCloud = {
         container = document.createElement( 'div' );
         panelContainer.append( container );
 
-        camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 0.05, 200 );
+        camera = new THREE.PerspectiveCamera( 55, panelContainer.width() / panelContainer.height(), 0.05, 200 );
         camera.position.z = 0;
         camera.position.x = 1;
         camera.position.y = 3;
@@ -134,7 +134,7 @@ pointCloud = {
 
         renderer = new THREE.WebGLRenderer();
         renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setSize( panelContainer.width(), panelContainer.height() );
         container.appendChild( renderer.domElement );
 
         // 				
@@ -153,6 +153,7 @@ pointCloud = {
         // BET THIS WON'T WORK, Need the equivalent for a div... 
         // THIS STILL DOESN"T WORK
         panelContainer[0].addEventListener( 'resize', pointCloud.onWindowResize, false );
+        window.addEventListener( 'resize', pointCloud.onWindowResize, false );
         // NEED TO CHANGE CUREL
         panelContainer.click(function (event) {
            var container = $(divIDE.getCtxTarget(event.target));
@@ -190,6 +191,7 @@ pointCloud = {
         // Animate 
         pointCloud.curElID = elID;
         pointCloud.animate();
+        pointCloud.onWindowResize();
     },
 
         
@@ -208,17 +210,24 @@ pointCloud = {
         var windowHalfX = panelContainer.width() / 2;
         var windowHalfY = panelContainer.height() / 2;
 
+        if (divIDE.panelJSData[elID].windowHalfX == windowHalfX &&
+        divIDE.panelJSData[elID].windowHalfY == windowHalfY){
+            return;
+        }
+        divIDE.panelJSData[elID].windowHalfX = windowHalfX;
+        divIDE.panelJSData[elID].windowHalfY = windowHalfY;
+
         var camera = divIDE.panelJSData[elID].camera;
         var renderer = divIDE.panelJSData[elID].renderer;
 
-        camera.aspect = windowHalfX / windowHalfY;
+        camera.aspect = panelContainer.width() / panelContainer.height();
         camera.updateProjectionMatrix();
 
         renderer.setSize( panelContainer.width(), panelContainer.height() );
 
 //                 controls.handleResize();
 
-        pointCloud.render();
+//         pointCloud.render();
 
     },
 
@@ -238,7 +247,10 @@ pointCloud = {
         var elID = pointCloud.curElID;
         var scene = divIDE.panelJSData[elID].scene;
         var camera = divIDE.panelJSData[elID].camera;
+
         divIDE.panelJSData[elID].renderer.render( scene, camera );
+
+        pointCloud.onWindowResize();
     },
 
     // Functionality to set the color based on a colormap
@@ -298,8 +310,8 @@ pointCloud = {
         var controls = divIDE.panelJSData[elID].controls;
         var particles = divIDE.panelJSData[elID].particles;
                 
-        x = (event.clientX / panelContainer.width()) * 2 - 1;
-        y = -(event.clientY / panelContainer.height()) * 2 + 1;
+        x = ((event.clientX - panelContainer.offset().left) / panelContainer.width()) * 2 - 1;
+        y = -((event.clientY - panelContainer.offset().top) / panelContainer.height()) * 2 + 1;
         dir = new THREE.Vector3(x, y, -1)
         dir.unproject(camera)
 
