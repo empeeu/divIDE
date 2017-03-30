@@ -712,6 +712,7 @@ layout = {
     var parentElem = $(divIDE.getCtxTarget(elem));
     var panelType = $(elem).val();
     var panelDiv = parentElem.find('[panelType]');
+    var parentId = parentElem.attr('id')
     if (panelType == layout.name) {
       // remove any existing divs
       panelDiv.remove();
@@ -734,10 +735,10 @@ layout = {
     if (panel.panelAdminHTML != undefined){
       var div2 = document.createElement('div');
       $(div2).attr('panelType', panelType);
-      $(div2).attr('id', parentElem.attr('id') + '-container-admin')
+      $(div2).attr('id', parentId + '-container-admin')
       $(div2).addClass('divIDEAdmin');
       $(div2).addClass(panel.name);
-      $(div2).html(panel.panelAdminHTML(parentElem.attr('id')));
+      $(div2).html(panel.panelAdminHTML(parentId));
       $(div).append(div2);
     }
 
@@ -747,6 +748,11 @@ layout = {
     for (var i=0; i < linkdatakeys.length; i++){
       var key = linkdatakeys[i];
       datakey.append('<option val="' + key + '">' + key + '</option>');
+    }
+
+    // Do any initialization for the particular panel of this panelType
+    if (panel.init != undefined){
+      panel.init(parentId + '-container');
     }
 
   },
