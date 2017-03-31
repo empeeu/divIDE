@@ -107,28 +107,28 @@ pointCloud = {
             pcNextI = pointCloud.incrementPcNextI(pcNextI, pcMaxRange);
         }
 
-        geometry = new THREE.BufferGeometry();
-        geometry.addAttribute("position", new THREE.BufferAttribute(positions, 3));
-        geometry.addAttribute("intensities", new THREE.BufferAttribute(intensities, 1));
-        geometry.addAttribute("moments", new THREE.BufferAttribute(moments, 3));
-        geometry.addAttribute("color", new THREE.BufferAttribute(moments, 3));
+//         geometry = new THREE.BufferGeometry();
+//         geometry.addAttribute("position", new THREE.BufferAttribute(positions, 3));
+//         geometry.addAttribute("intensities", new THREE.BufferAttribute(intensities, 1));
+//         geometry.addAttribute("moments", new THREE.BufferAttribute(moments, 3));
+//         geometry.addAttribute("color", new THREE.BufferAttribute(moments, 3));
 
-        geometry.dynamic = true;
-        geometry.setDrawRange(0, 10);
+//         geometry.dynamic = true;
+//         geometry.setDrawRange(0, 10);
 
-        material = new THREE.PointsMaterial( { 
-            size: 0.02,
-            vertexColors: THREE.VertexColors,
-            sizeAttenuation: true, 
-            alphaTest: 0.5, 
-            transparent: true, 
-            opacity: 0.9 
-//                 	color: 0x555555,
-// 	                map: sprite
-         } );
+//         material = new THREE.PointsMaterial( { 
+//             size: 0.02,
+//             vertexColors: THREE.VertexColors,
+//             sizeAttenuation: true, 
+//             alphaTest: 0.5, 
+//             transparent: true, 
+//             opacity: 0.9 
+// //                 	color: 0x555555,
+// // 	                map: sprite
+//          } );
 
-        particles = new THREE.Points( geometry, material );
-        scene.add( particles );
+//         particles = new THREE.Points( geometry, material );
+//         scene.add( particles );
 
         //
 
@@ -224,11 +224,47 @@ pointCloud = {
         camera.updateProjectionMatrix();
 
         renderer.setSize( panelContainer.width(), panelContainer.height() );
+    },
 
-//                 controls.handleResize();
+    // Functionality to change the focus point of the orbit controls
+    ondblclick: function (event) {
+        var elID = pointCloud.curElID;
+        var panelContainer = $('#' + elID);
+        var camera = divIDE.panelJSData[elID].camera;
+        var controls = divIDE.panelJSData[elID].controls;
+        var particles = divIDE.panelJSData[elID].particles;
+        if (particles == undefined){
+            particles = divIDE.panelJSData[elID].stringParticles;
+        }
+                
+        x = ((event.clientX - panelContainer.offset().left) / panelContainer.innerWidth()) * 2 - 1;
+        y = -((event.clientY - panelContainer.offset().top) / panelContainer.innerHeight()) * 2 + 1;
+        dir = new THREE.Vector3(x, y, -1)
+        dir.unproject(camera)
 
-//         pointCloud.render();
+        ray = new THREE.Raycaster(camera.position, dir.sub(camera.position).normalize())
+        var intersects = ray.intersectObject(particles);
+        if ( intersects.length > 0 )
+        {
+            var minI = 0;
+            var minD = intersects[0].distanceToRay;
+            for (var i=0; i < intersects.length; i++){
+                if (minD > intersects[i].distanceToRay){
+                    minI = i;
+                    minD = intersects[i].distanceToRay;
+                }
+            }
+            controls.target.set(intersects[minI].point.x, intersects[minI].point.y, intersects[minI].point.z);
+        }
+    },    
 
+    streamData: function () {
+        ws.send('sendData');
+        wsStreaming = true;
+    },
+
+    stopStreamData: function (){
+        wsStreaming = false;
     },
 
     animate: function() {
@@ -251,6 +287,32 @@ pointCloud = {
         divIDE.panelJSData[elID].renderer.render( scene, camera );
 
         pointCloud.onWindowResize();
+    },
+
+    setStringGeometry: function (elID, vertices_json, colors_json){
+        var scene = divIDE.panelJSData[elID].scene;
+        var material = divIDE.panelJSData[elID].material;
+        var geometry = divIDE.panelJSData[elID].stringGeometry;
+
+        if (geometry != undefined){
+            scene.remove(divIDE.panelJSData[elID].stringParticles);
+            divIDE.panelJSData[elID].stringParticles.geometry.dispose();
+        }
+
+        geometry = new THREE.Geometry();
+        var vertices = JSON.parse(vertices_json);
+        for (var i=0; i < vertices.length; i++){
+            var vertex = new THREE.Vector3()
+            vertex.x = vertices[i][0];
+            vertex.y = vertices[i][1];
+            vertex.z = vertices[i][2];
+            geometry.vertices.push(vertex);
+        }
+        var stringParticles = new THREE.Points( geometry, material );
+        scene.add( stringParticles );
+        divIDE.panelJSData[elID].stringParticles = stringParticles;
+        divIDE.panelJSData[elID].stringGeometry = geometry;
+
     },
 
     // Functionality to set the color based on a colormap
@@ -300,44 +362,6 @@ pointCloud = {
             geometry.attributes[attr].array,
             geometry.attributes[attr].itemSize, col, vmin, vmax);
         geometry.attributes.color.needsUpdate = true;			
-    },
-      
-    // Functionality to change the focus point of the orbit controls
-    ondblclick: function (event) {
-        var elID = pointCloud.curElID;
-        var panelContainer = $('#' + elID);
-        var camera = divIDE.panelJSData[elID].camera;
-        var controls = divIDE.panelJSData[elID].controls;
-        var particles = divIDE.panelJSData[elID].particles;
-                
-        x = ((event.clientX - panelContainer.offset().left) / panelContainer.width()) * 2 - 1;
-        y = -((event.clientY - panelContainer.offset().top) / panelContainer.height()) * 2 + 1;
-        dir = new THREE.Vector3(x, y, -1)
-        dir.unproject(camera)
-
-        ray = new THREE.Raycaster(camera.position, dir.sub(camera.position).normalize())
-        var intersects = ray.intersectObject(particles);
-        if ( intersects.length > 0 )
-        {
-            var minI = 0;
-            var minD = intersects[0].distanceToRay;
-            for (var i=0; i < intersects.length; i++){
-                if (minD > intersects[i].distanceToRay){
-                    minI = i;
-                    minD = intersects[i].distanceToRay;
-                }
-            }
-            controls.target.set(intersects[minI].point.x, intersects[minI].point.y, intersects[minI].point.z);
-        }
-    },    
-
-    streamData: function () {
-        ws.send('sendData');
-        wsStreaming = true;
-    },
-
-    stopStreamData: function (){
-        wsStreaming = false;
     },
 
     updatePointCloud: function (buffer, elID){
