@@ -15,23 +15,14 @@ pointCloud = {
     },*/
 
     linkDataKeys: [
-        'xyz',
-        'c', 
-        'rgb',
-        'xyzc',
-        'xyzrgb'
+        'stringGeometry',
+        'binaryGeometry'
     ],
 
     getPanelData: function(parentElement, key){
-      if (key == 'xyz'){
+      if (key == 'stringGeometry'){
          return;  
-      } else if (key == 'c') { 
-         return;
-      } else if (key == 'rgb') { 
-         return;
-      } else if (key == 'xyzc') { 
-         return;
-      } else if (key == 'xyzrgb') { 
+      } else if (key == 'binaryGeometry') { 
          return;
       } else {
           return;
@@ -39,15 +30,9 @@ pointCloud = {
     },
 
     setPanelData: function(parentElement, data, key) {
-      if (key == 'xyz'){
-         return;  
-      } else if (key == 'c') { 
-         return;
-      } else if (key == 'rgb') { 
-         return;
-      } else if (key == 'xyzc') { 
-         return;
-      } else if (key == 'xyzrgb') { 
+      if (key == 'stringGeometry'){
+         pointCloud.setStringGeometry(parentElement.attr('id'), data);  
+      } else if (key == 'binaryGeometry') { 
          return;
       } else {
           return;
@@ -116,16 +101,16 @@ pointCloud = {
 //         geometry.dynamic = true;
 //         geometry.setDrawRange(0, 10);
 
-//         material = new THREE.PointsMaterial( { 
-//             size: 0.02,
-//             vertexColors: THREE.VertexColors,
-//             sizeAttenuation: true, 
+        material = new THREE.PointsMaterial( { 
+            size: 1,
+            vertexColors: THREE.VertexColors,
+            sizeAttenuation: true
 //             alphaTest: 0.5, 
 //             transparent: true, 
 //             opacity: 0.9 
-// //                 	color: 0x555555,
-// // 	                map: sprite
-//          } );
+//                 	color: 0x555555,
+// 	                map: sprite
+         } );
 
 //         particles = new THREE.Points( geometry, material );
 //         scene.add( particles );
@@ -290,9 +275,15 @@ pointCloud = {
     },
 
     setStringGeometry: function (elID, vertices_json, colors_json){
+        try {
+            var vertices = JSON.parse(vertices_json);
+        } catch (e){
+            return;
+        }
         var scene = divIDE.panelJSData[elID].scene;
         var material = divIDE.panelJSData[elID].material;
         var geometry = divIDE.panelJSData[elID].stringGeometry;
+        var color = [] ;
 
         if (geometry != undefined){
             scene.remove(divIDE.panelJSData[elID].stringParticles);
@@ -300,13 +291,50 @@ pointCloud = {
         }
 
         geometry = new THREE.Geometry();
-        var vertices = JSON.parse(vertices_json);
+        var docolor = vertices[0].length;
+
+        if (docolor == 4){
+            if (vmax == undefined){
+                var vmax = -Infinity;
+                for (var i = 0; i < vertices.length; i++){
+                    if (vertices[i][3] > vmax){
+                        vmax = vertices[i][3];
+                    }
+                }
+            }
+            if (vmin == undefined){
+                var vmin = Infinity;
+                for (var i = 0; i < vertices.length; i++){
+                    if (vertices[i][3] < vmin){
+                        vmin = vertices[i][3];
+                    }
+                }
+            }
+            var colorMap = 'rainbow';
+            var numberOfColors = 256;
+            var lut = new THREE.Lut(colorMap, numberOfColors);
+            lut.setMax ( vmax );
+            lut.setMin ( vmin );
+        }
+
         for (var i=0; i < vertices.length; i++){
             var vertex = new THREE.Vector3()
             vertex.x = vertices[i][0];
             vertex.y = vertices[i][1];
             vertex.z = vertices[i][2];
             geometry.vertices.push(vertex);
+            if (docolor == 4)
+            {
+                var c = lut.getColor ( vertices[i][3] );
+                var col = new THREE.Color(c.r, c.g, c.b);
+                geometry.colors.push(col);
+            } else if (docolor == 6) {
+                var col = new THREE.Color(vertices[i][3], 
+                                          vertices[i][4],
+                                          vertices[i][5]);
+                geometry.colors.push(col);
+            }
+
         }
         var stringParticles = new THREE.Points( geometry, material );
         scene.add( stringParticles );
