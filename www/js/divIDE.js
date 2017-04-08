@@ -840,6 +840,7 @@ divIDE.registerPanel(main);
 divIDE.registerPanel(layout);  
 
 
-
+// Load Foundation to style app, passes in jquery as parameter
+$(document).foundation()
 
 
