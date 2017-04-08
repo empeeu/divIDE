@@ -8,7 +8,7 @@ var divIDE = {
   getCtxTarget: function (elem) {
     var ctx_target = elem;
     var panelType = $(elem).attr('panelType');
-    if (panelType == undefined){
+    if (panelType === undefined){
       var elem = elem.closest('[paneltype]');
     }
     return elem
@@ -19,7 +19,7 @@ var divIDE = {
     divIDE.ctxTarget = divIDE.getCtxTarget($(event.target));
     var panelType = divIDE.ctxTarget.attr('panelType');
     var panelMenu = divIDE.panelTypes[panelType].showMenu;
-    if (panelMenu == undefined){
+    if (panelMenu === undefined){
       divIDE.showMenuType(panelType);
     } else {
       divIDE.panelTypes[panelType].showMenu(panelType, event);
@@ -28,7 +28,7 @@ var divIDE = {
 
   showMenuType: function(panelType){
       var ctxMenu = $("#" + panelType + "CtxMenu")[0];
-      if (ctxMenu == undefined){
+      if (ctxMenu === undefined){
         return;
       }
       event.stopPropagation();
@@ -64,15 +64,15 @@ var divIDE = {
   registerPanel: function (panel) {
     divIDE.panelTypes[panel.name] = panel;
     var topMenus = panel.topMenuItems;
-    if (topMenus != undefined){
+    if (topMenus !== undefined){
       divIDE.addTopMenuItems(panel);
     }
     var ctxMenus = panel.contextMenuItems;
-    if (ctxMenus != undefined){
+    if (ctxMenus !== undefined){
       divIDE.addContextMenuItems(panel);
     }
     var ready = panel.ready;
-    if (ready != undefined){
+    if (ready !== undefined){
       panel.ready();
     }
     layout.populatePanelTypeSelectorOptions();
@@ -80,14 +80,14 @@ var divIDE = {
   // Functions related to adding top and context menus
   // helper function for recursion
   _addSubMenus: function (menus, idprepend){
-    if (idprepend == undefined){
+    if (idprepend === undefined){
       var idprepend = '';
     }
     var html = '';
     for (var key in menus){
       var attrs = '';
       for (var attrkey in menus[key]){
-        if (attrkey == 'subMenus'){
+        if (attrkey === 'subMenus'){
           continue
         }
         attrs += " " + attrkey + '="' + menus[key][attrkey] + '" ';
@@ -143,7 +143,7 @@ var divIDE = {
     var id = parentElem.attr('id');
     var changeLock=true;
     if (divIDE.panelDataChangeId != id && divIDE.panelDataLinks[id] != undefined){
-      if (divIDE.panelDataChangeId == undefined){
+      if (divIDE.panelDataChangeId === undefined){
         divIDE.panelDataChangeId = id;
         changelock=false;
       }
@@ -165,7 +165,7 @@ var divIDE = {
         }
       }
     }
-    if (changeLock==false || id == divIDE.panelDataChangeId){
+    if (changeLock===false || id === divIDE.panelDataChangeId){
       divIDE.panelDataChangeId = undefined;  
     }    
   },
@@ -177,7 +177,7 @@ var divIDE = {
     var fromPanelLink = parentElem.find('.fromPanelLink');
     var fromPanelKey = parentElem.find('.fromPanelKey');
     
-    if (fromPanelKey.val() == '-1' && fromPanelLink.val() != '-1'){
+    if (fromPanelKey.val() === '-1' && fromPanelLink.val() != '-1'){
       var panelType = $('#divIDEPanelNumber-' +
         fromPanelLink.val() + '-container').attr('panelType');
       if (panelType != undefined){
@@ -193,23 +193,23 @@ var divIDE = {
       }
     }
 
-    if (toPanelKey.val() == "-1" || fromPanelKey.val() == "-1" || fromPanelLink.val() == "-1"){
+    if (toPanelKey.val() === "-1" || fromPanelKey.val() === "-1" || fromPanelLink.val() === "-1"){
       return;
     }
 
     var fromID = 'divIDEPanelNumber-' + fromPanelLink.val() + '-container';
     var dl = divIDE.panelDataLinks[fromID];
-    if (dl == undefined){
+    if (dl === undefined){
       divIDE.panelDataLinks[fromID] = {};
       dl = divIDE.panelDataLinks[fromID];
     }
     var dlk = dl[fromPanelKey.val()];
-    if (dlk == undefined){
+    if (dlk === undefined){
       dl[fromPanelKey.val()] = {};
       dlk = dl[fromPanelKey.val()];
     }
     var dlkt = dlk[parentElem.attr('id') + '-container'];
-    if (dlkt == undefined){
+    if (dlkt === undefined){
       dlk[parentElem.attr('id') + '-container'] = [];
     }
     dlk[parentElem.attr('id') + '-container'].push(toPanelKey.val());
@@ -269,7 +269,7 @@ var divIDE = {
     for (var childKey in layoutObj.children){
       var child = layoutObj.children[childKey];
       var cPanelType = child.attrs.panelType;
-      if (cPanelType == layout.name){
+      if (cPanelType === layout.name){
         divIDE.ctxTarget = divIDE.getCtxTarget(elem);
         layout.addPanel(child.attrs.id);
         $('#'+child.attrs.id).attr('class', child.attrs.classes);
@@ -516,10 +516,10 @@ layout = {
     var trs = $(elem).find('tr');
     var data;
     var i = 0;
-    if (key == 'width'){
+    if (key === 'width'){
       i = 0;
     }
-    if (key == 'height'){
+    if (key === 'height'){
       i = 1;
     }
     var val = $(trs[i]).find('input').val();
@@ -532,10 +532,10 @@ layout = {
   setPanelData: function(parentElem, data, key){
     var trs = $(parentElem).find('tr');
     var i = 0;
-    if (key == 'width'){
+    if (key === 'width'){
       i = 0;
     }
-    if (key == 'height'){
+    if (key === 'height'){
       i = 1;
     }
     $(trs[i]).find('input').val(parseInt(data.size));
@@ -552,7 +552,7 @@ layout = {
   populatePanelTypeSelectorOptions: function (){
     layout.panelTypeSelectorOptions = '';
     for (var key in divIDE.panelTypes) {
-      if (key == main.name || key == layout.name){
+      if (key === main.name || key === layout.name){
         continue;
       }
       layout.panelTypeSelectorOptions += " \
@@ -612,17 +612,17 @@ layout = {
       var tr = $(melem).closest('tr');
       var unit = $(tr).find('select')[0].value;
       var size = $(tr).find('input')[0].value;
-      if (unit == 'flex'){
+      if (unit === 'flex'){
           elem.css('flex', size);
           elem.css('max-' + wh, '');
           inputs = elem.find('input');
           for (var i = 0; i < inputs.length; i++){
               var u = $(inputs[i]).closest('tr').find('select')[0].value;
-              if (u == 'flex'){
+              if (u === 'flex'){
                   inputs[i].value = size;
               }
           }
-      } else if (unit == 'px') {
+      } else if (unit === 'px') {
           elem.css('flex', '');
           elem.css('max-'+ wh, size + unit);
       }
@@ -676,7 +676,7 @@ layout = {
     }
 
 //     var elId = $(parentElem).attr('id') + '-' + $(parentElem).children().length;
-    if (elId == undefined){
+    if (elId === undefined){
       var elId = "divIDEPanelNumber-" + divIDE.nPanels;
     }
     // Add this as a potential link for other panels
@@ -713,11 +713,11 @@ layout = {
     var panelType = $(elem).val();
     var panelDiv = parentElem.find('[panelType]');
     var parentId = parentElem.attr('id')
-    if (panelType == layout.name) {
+    if (panelType === layout.name) {
       // remove any existing divs
       panelDiv.remove();
       return;
-    } else if (panelType == panelDiv.attr('panelType')) {
+    } else if (panelType === panelDiv.attr('panelType')) {
       // Already this type
       return;
     }
