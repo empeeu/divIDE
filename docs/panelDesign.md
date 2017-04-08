@@ -1,12 +1,17 @@
-To register a new panel type, you need to call:
+# Panel Design
 
-    `divIDE.addPanel(panelName)`
+To register a new panel type (i.e. `examplePanel`), you need to call:
 
-`panelName` is an object that contains a mixture of functions and 
+```javascript
+divIDE.addPanel(examplePanel)
+```
+
+`examplePanel` is an object that contains a mixture of functions and 
 attributes describing the new panel. The schema is as follows:
 
-panelName = {
-        name: 'panelName',  // This should also be the class name
+```javascript
+examplePanel = {
+    name: 'examplePanel',  // This should also be the class name
 
 	panelHTML: function (uniqueParentElementID),
 
@@ -53,3 +58,4 @@ panelData = {
             dataLinks: {},  // links to data from other panels
         }        
 }        
+```
