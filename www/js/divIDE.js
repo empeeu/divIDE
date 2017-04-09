@@ -372,12 +372,13 @@ var main = {
     $(mainDivIDE).addClass('borderStyle rowItems divIDELayout');
     $(mainDivIDE).attr('panelType', 'mainDivIDE')
     $(mainDivIDE).append("\
-        <a href='#' class='layoutToolBarButton button' onclick='layout.alignToggle(this)'\
-          style='margin-left: 0px; display:none;'>--</a>\
-        <a href='#' class='layoutToolBarButton button' onclick='layout.addPanelButton(this)'\
-          style='margin-left: 20px; display:none;'>+</a>\
-          ");
-
+      <div class='layoutToolbarButtons tiny button-group'>\
+        <a href='#' class='layoutToolBarButton button' onclick='layout.alignToggle(this)' style='display:none;'>\
+          <i class='fi-minus'></i></a>\
+        <a href='#' class='layoutToolBarButton button' onclick='layout.addPanelButton(this)' style='display:none;'>\
+          <i class='fi-plus'></i></a>\
+      </div>\
+    ");
   }
 }
 
@@ -389,18 +390,22 @@ layout = {
     //                               <div class='layoutToolBar dropdown-pane' id='layout-toolbar' data-dropdown> 
     var html = "\
       <div> \
-        <a href='#' class='layoutToolBarButton button hollow secondary'\
-          style='margin-top: 20px;'>" + elId.split('-')[1] + "</a>\
-        <button class='layoutToolBarButton button' type='button' data-toggle='" + elId + "sizeDrop'>.</button>\
-        <a href='#' class='layoutToolBarButton button' onclick='layout.alignToggle(this)'\
-          style='margin-left: 20px;'>--</a>\
-        <a href='#' class='layoutToolBarButton button' onclick='layout.addPanelButton(this)'\
-          style='margin-left: 40px;'>+</a>\
-        <a href='#' class='layoutToolBarButton button' onclick='layout.removePanelButton(this)'\
-          style='margin-left: 60px;'>D</a>\
-        <button class='layoutToolBarButton button layoutLinkButton' type='button' \
-          style='margin-left: 80px;' data-toggle='" + elId + "linkDrop'>8</button>\
-        <table class='layoutToolBar dropdown-pane' id='" + elId + "sizeDrop' data-dropdown><tbody> \
+        <div class='layoutToolbarButtons tiny button-group'>\
+          <a href='#' class='layoutToolBarButton button hollow secondary'>\
+            " + elId.split('-')[1] + "</a>\
+          <a href='#' class='layoutToolBarButton button' data-toggle='" + elId + "sizeDrop'>\
+            <i class='fi-list'></i></a>\
+          <a href='#' class='layoutToolBarButton button' onclick='layout.alignToggle(this)'>\
+            <i class='fi-minus'></i></a>\
+          <a href='#' class='layoutToolBarButton button' onclick='layout.addPanelButton(this)'>\
+            <i class='fi-plus'></i></a>\
+          <a href='#' class='layoutToolBarButton button' data-toggle='" + elId + "linkDrop'>\
+            <i class='fi-link'></i></button>\
+          <a href='#' class='layoutToolBarButton button' onclick='layout.removePanelButton(this)'>\
+            <i class='fi-x'></i></a>\
+        </div> \
+          \
+      <table class='layoutToolBar dropdown-pane' id='" + elId + "sizeDrop' data-dropdown data-options='closeOnClick:true;'><tbody> \
         <tr>\
           <td>Width:</td> \
           <td><input type='number' min=0 max=2048 class='layoutWidth' value='1' onchange='layout.boxWidthChange(this)'> \
@@ -429,7 +434,8 @@ layout = {
           </td> \
         </tr> \
       </tbody></table>\
-      <table class='layoutToolBar dropdown-pane layoutLinkSetup' id='" + elId + "linkDrop' data-dropdown><tbody> \
+      \
+      <table class='layoutToolBar dropdown-pane layoutLinkSetup' id='" + elId + "linkDrop' data-dropdown data-options='closeOnClick:true;'><tbody> \
       <tr><th>To Key</th><th>From Panel #</th><th>From Key</th></tr>\
       <tr>\
         <td>\
@@ -761,10 +767,10 @@ layout = {
     divIDE.ctxTarget = $(divIDE.getCtxTarget(elem));
     if (divIDE.ctxTarget.hasClass('rowItems')){
       layout.alignVertical();
-      $(elem).text('|');
+      $(elem).html('<div style="transform: rotate(90deg)"><i class="fi-minus"></i></div>');  
     } else {
       layout.alignHorizontal();
-      $(elem).text('--');
+      $(elem).html('<i class="fi-minus"></i>');
     }
 
   },
@@ -806,11 +812,14 @@ layout = {
       divIDE.panelDataLinks = layoutObj.panelDataLinks;
       divIDE.nPanels = layoutObj.nPanels;
       // clear everything
-      $('#mainDivIDE').html('\
-        <a href="#" class="layoutToolBarButton button" onclick="layout.alignToggle(this)"\
-         style="margin-left: 0px;">--</a>\
-        <a href="#" class="layoutToolBarButton button" onclick="layout.addPanelButton(this)"\
-         style="margin-left: 20px;">+</a>');
+      $('#mainDivIDE').html("\
+        <div class='layoutToolbarButtons tiny button-group'>\
+          <a href='#' class='layoutToolBarButton button' onclick='layout.alignToggle(this)'>\
+            <i class='fi-minus'></i></a>\
+          <a href='#' class='layoutToolBarButton button' onclick='layout.addPanelButton(this)'>\
+            <i class='fi-plus'></i></a>\
+        </div>\
+       ");
       divIDE.setPanelContents(layoutObj.mainDivIDE);
       layout.layoutEdit($('#tmLayoutEdit'));
       layout.layoutEdit($('#tmLayoutEdit'));
