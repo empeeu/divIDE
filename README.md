@@ -7,22 +7,21 @@ Divide is a ...
 **DivIDE** requires you to have the following dependencies installed on your machine globally:
 
 - Python > 2.7.x, or 3.5.x
+- [Node](nodejs.org) > 6
 
-To run the application in your local browser, open a terminal in the `www/` directory and run:
-
-Using Python 3.x:
-
-```
-$ python -m http.server
-```
-
-Using Python 2.x:
+After cloning the repository, you can install all the development dependencies using the Node Package Manager (`npm`). Open a terminal in the root of the repository and run: 
 
 ```
-$ python -m SimpleHTTPServer
+$ npm install
 ```
 
-Navigate to a web browser, type `http://0.0.0.0:8000/`, and you should see the application running in the browser.
+To run the application in your local browser, open a terminal in the root of the repository and run: 
+
+```
+$ npm run serve
+```
+
+This will open a live-reload server in the `www` directory
 
 ## Road Map
 
