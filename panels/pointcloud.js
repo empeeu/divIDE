@@ -274,7 +274,7 @@ pointCloud = {
         pointCloud.onWindowResize();
     },
 
-    setStringGeometry: function (elID, vertices_json, colors_json){
+    setStringGeometry: function (elID, vertices_json){
         try {
             var vertices = JSON.parse(vertices_json);
         } catch (e){
@@ -392,7 +392,8 @@ pointCloud = {
         geometry.attributes.color.needsUpdate = true;			
     },
 
-    updatePointCloud: function (buffer, elID){
+    setBinaryGeometry: function (elID, buffer){
+        // With this one, we only make a new one IF the max size is larger.
         container = $('#' + elID);
         var pcNextI = divIDE.panelJSData[container].pcNextI;
         var pcMaxRange = divIDE.panelJSData[container].pcMaxRange;
