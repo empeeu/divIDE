@@ -302,11 +302,11 @@ pointCloud = {
         geometry = new THREE.Geometry();
         var docolor = vertices[0].length;
 
-        if (docolor == 4 || docolor == 3){
+        if ((docolor == 4) || (docolor == 3)){
             if (vmax == undefined){
                 var vmax = -Infinity;
                 for (var i = 0; i < vertices.length; i++){
-                    if (vertices[i][3] > vmax){
+                    if (vertices[i][docolor - 1] > vmax){
                         vmax = vertices[i][docolor - 1];
                     }
                 }
@@ -314,7 +314,7 @@ pointCloud = {
             if (vmin == undefined){
                 var vmin = Infinity;
                 for (var i = 0; i < vertices.length; i++){
-                    if (vertices[i][3] < vmin){
+                    if (vertices[i][docolor - 1] < vmin){
                         vmin = vertices[i][docolor -1];
                     }
                 }
@@ -332,7 +332,7 @@ pointCloud = {
             vertex.y = vertices[i][1];
             vertex.z = vertices[i][2];
             geometry.vertices.push(vertex);
-            if (docolor == 4 || docolor == 3)
+            if ((docolor == 4) || (docolor == 3))
             {
                 var c = lut.getColor ( vertices[i][docolor - 1] );
                 var col = new THREE.Color(c.r, c.g, c.b);
@@ -349,6 +349,8 @@ pointCloud = {
         divIDE.panelJSData[elID].stringParticles = stringParticles;
         divIDE.panelJSData[elID].stringGeometry = geometry;
         divIDE.panelJSData[elID].status = 'ready';
+        divIDE.onLinkDataChange($('#' + elID), 'status');
+
     },
 
     // Functionality to set the color based on a colormap
@@ -411,6 +413,7 @@ pointCloud = {
         // if buffer[0] == 6, set xyzrgb
 
         divIDE.panelJSData[elID].status = 'busy';
+        divIDE.onLinkDataChange($('#' + elID), 'status');
 
         container = $('#' + elID);
         var view = new DataView(buffer);
@@ -496,6 +499,7 @@ pointCloud = {
 
         // Let everyone know I'm ready to receive more data
         divIDE.panelJSData[elID].status = 'ready';
+        divIDE.onLinkDataChange($('#' + elID), 'status');
     }
 }
 
