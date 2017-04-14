@@ -16,42 +16,55 @@ pointCloud = {
 
     linkDataKeys: [
         'stringGeometry',
-        'binaryGeometry'
+        'binaryGeometry',
+        'status',
+        'binaryDrawType',
     ],
 
     getPanelData: function(parentElement, key){
+      var container = $(divIDE.getCtxTarget(parentElement));
+      var elID = container.attr('id'); 
       if (key == 'stringGeometry'){
          return;  
       } else if (key == 'binaryGeometry') { 
          return;
+      } else if (key == 'status') {
+          return divIDE.panelJSData[elID].status;
+      } else if (key == 'binaryDrawType') {
+          return divIDE.panelJSData[elID].binaryDrawType;
       } else {
-          return;
+          return ;
       }
     },
 
     setPanelData: function(parentElement, data, key) {
+      var elID = parentElement.attr('id'); 
       if (key == 'stringGeometry'){
-         pointCloud.setStringGeometry(parentElement.attr('id'), data);  
+         pointCloud.setStringGeometry(elID, data);  
       } else if (key == 'binaryGeometry') { 
-         return;
+        setBinaryGeometry(elID, buffer)
+      } else if (key == 'status') { 
+         divIDE.panelJSData[elID].status = data;
+      } else if (key == 'binaryDrawType') {
+         divIDE.panelJSData[elID].binaryDrawType = data;
       } else {
           return;
       }
     },
 
     init: function (elID){
-        var showStats = true;
+        var showStats = false;
 
         if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
         panelContainer = $('#' + elID);
 
         var container;
-        var camera, scene, renderer, particles, geometry, material, i, h, color, sprite, size;
+        var camera, scene, renderer, material, i, h, color, sprite, size;
         var controls;
         var mouseX = 0, mouseY = 0;
-        var pcPtRange = 10;
-        var pcMaxRange = 64*64;
+        var pcPtRange = 0;
+        var pcMaxRange = 0;
         var pcNextI = 0;
 
         var windowHalfX = panelContainer.width() / 2;
@@ -72,25 +85,25 @@ pointCloud = {
         scene = new THREE.Scene();
 //                 scene.fog = new THREE.FogExp2( 0x000000, 0.001 );
 
-        geometry = new THREE.Geometry();
+//         geometry = new THREE.Geometry();
 
 //                 sprite = new THREE.TextureLoader().load( "disc.png" );
 
-        var numPoints = pcMaxRange;
-        var positions = new Float32Array(numPoints*3);
-        var intensities = new Float32Array(numPoints);
-        var moments = new Float32Array(numPoints*3);
+//         var numPoints = pcMaxRange;
+//         var positions = new Float32Array(numPoints*3);
+//         var intensities = new Float32Array(numPoints);
+//         var moments = new Float32Array(numPoints*3);
 
-        for(var i = 0; i < 10; i++){
-            positions[pcNextI*3 + 0] = Math.random();
-            positions[pcNextI*3 + 1] = Math.random()
-            positions[pcNextI*3 + 2] = Math.random()
-            intensities[pcNextI + 0] = Math.random()
-            moments[pcNextI*3 + 0] = Math.random()
-            moments[pcNextI*3 + 1] = Math.random()
-            moments[pcNextI*3 + 2] = Math.random()
-            pcNextI = pointCloud.incrementPcNextI(pcNextI, pcMaxRange);
-        }
+//         for(var i = 0; i < 10; i++){
+//             positions[pcNextI*3 + 0] = Math.random();
+//             positions[pcNextI*3 + 1] = Math.random()
+//             positions[pcNextI*3 + 2] = Math.random()
+//             intensities[pcNextI + 0] = Math.random()
+//             moments[pcNextI*3 + 0] = Math.random()
+//             moments[pcNextI*3 + 1] = Math.random()
+//             moments[pcNextI*3 + 2] = Math.random()
+//             pcNextI = pointCloud.incrementPcNextI(pcNextI, pcMaxRange);
+//         }
 
 //         geometry = new THREE.BufferGeometry();
 //         geometry.addAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -137,7 +150,7 @@ pointCloud = {
         //
         // BET THIS WON'T WORK, Need the equivalent for a div... 
         // THIS STILL DOESN"T WORK
-        panelContainer[0].addEventListener( 'resize', pointCloud.onWindowResize, false );
+        //panelContainer[0].addEventListener( 'resize', pointCloud.onWindowResize, false );
         window.addEventListener( 'resize', pointCloud.onWindowResize, false );
         // NEED TO CHANGE CUREL
         panelContainer.click(function (event) {
@@ -151,8 +164,6 @@ pointCloud = {
             camera: camera, 
             scene: scene, 
             renderer: renderer, 
-            particles: particles, 
-            geometry: geometry, 
             material: material, 
             i: i, 
             h: h, 
@@ -243,15 +254,6 @@ pointCloud = {
         }
     },    
 
-    streamData: function () {
-        ws.send('sendData');
-        wsStreaming = true;
-    },
-
-    stopStreamData: function (){
-        wsStreaming = false;
-    },
-
     animate: function() {
         var elID = pointCloud.curElID;
         var controls = divIDE.panelJSData[elID].controls;
@@ -260,8 +262,9 @@ pointCloud = {
         controls.update()
 
         pointCloud.render(elID);
-        stats.update();
-
+        if (stats !== undefined){
+            stats.update();    
+        }
     },
 
     render: function () {
@@ -275,6 +278,8 @@ pointCloud = {
     },
 
     setStringGeometry: function (elID, vertices_json){
+        divIDE.panelJSData[elID].status = 'busy';
+        divIDE.onLinkDataChange($('# + elID'), 'status');
         try {
             var vertices = JSON.parse(vertices_json);
         } catch (e){
@@ -285,7 +290,7 @@ pointCloud = {
         var geometry = divIDE.panelJSData[elID].stringGeometry;
         var color = [] ;
 
-        if (geometry != undefined){
+        if (geometry !== undefined){
             scene.remove(divIDE.panelJSData[elID].stringParticles);
             divIDE.panelJSData[elID].stringParticles.geometry.dispose();
         }
@@ -340,7 +345,7 @@ pointCloud = {
         scene.add( stringParticles );
         divIDE.panelJSData[elID].stringParticles = stringParticles;
         divIDE.panelJSData[elID].stringGeometry = geometry;
-
+        divIDE.panelJSData[elID].status = 'ready';
     },
 
     // Functionality to set the color based on a colormap
@@ -385,7 +390,7 @@ pointCloud = {
         if (col == undefined){
             var col = 0;
         }
-        setPointColor(
+        pointCloud.setPointColor(
             geometry.attributes.color.array,
             geometry.attributes[attr].array,
             geometry.attributes[attr].itemSize, col, vmin, vmax);
@@ -393,46 +398,101 @@ pointCloud = {
     },
 
     setBinaryGeometry: function (elID, buffer){
-        // With this one, we only make a new one IF the max size is larger.
+        // This function assumes that the first row of data tells us about the
+        // rest of the data. In particular, the first element of the array should
+        // give the total number of columns in the data. 
+        // The remaining data in that row is now being used
+        // the buffer should contain only FLOAT32'scene
+        // if buffer[0] == 3, set xyz points
+        // if buffer[0] == 4, set xyz points and 'intensity'
+        // if buffer[0] == 6, set xyzrgb
+
+        divIDE.panelJSData[elID].status = 'busy';
+
         container = $('#' + elID);
-        var pcNextI = divIDE.panelJSData[container].pcNextI;
-        var pcMaxRange = divIDE.panelJSData[container].pcMaxRange;
-        var n_columns = 7;
-        var n_bytes = 4;  // astype np.float32 on server side
-        var stride = n_columns * n_bytes;
         var view = new DataView(buffer);
-        var numPoints = buffer.byteLength / stride;
-        pcPtRange += numPoints;
-        pcPtRange = Math.min(pcPtRange, pcMaxRange);
+
+        // Figure out the size of the data
+        var nColumns = view.getFloat32(0, true);
+        var nBytes = 4;  // 4 bytes for a float32
+        var stride = nColumns * nBytes;
+        var numPoints = buffer.byteLength / stride - 1; // subtract 1 for first row
+
+        // Figure out if we need to create a new geometry
+        var geometry = divIDE.panelJSData[elID].binaryGeometry;
+        
+        // Figure out if geometry is big enough
+        if ((geometry !== undefined) && (geometry.attributes.position.count < numPoints)){
+            divIDE.panelJSData[elID].binaryParticles.dispose();
+            divIDE.panelJSData[elID].binaryGeometry.dispose();
+            geometry = undefined;
+        }
+
+        if (geometry === undefined){
+           var pcSize = Math.max(numPoints, divIDE.panelJSData[elID].pcMaxRange);
+           var position = new Float32Array(pcSize * 3);
+           var color = new Float32Array(pcSize * 3);
+           var intensity = new Float32Array(pcSize);
+
+           geometry = new THREE.BufferGeometry(); 
+           geometry.addAttribute("position", new THREE.BufferAttribute(position, 3));
+           geometry.addAttribute("color", new THREE.BufferAttribute(color, 3));
+           geometry.addAttribute("intensity", new THREE.BufferAttribute(intensity, 1));
+           geometry.dynamic = true;
+           divIDE.panelJSData[elID].binaryGeometry = geometry;
+        }
+
+        // Figure out how to adjust the draw range
+        var pcNextI = divIDE.panelJSData[elID].pcNextI;
+        var pcMaxRange = divIDE.panelJSData[elID].pcMaxRange;
+        var pxPtRange = divIDE.panelJSData[elID].pxPtRange;
+        if (divIDE.panelJSData[elID].binaryDrawType == 'fill'){
+            pcPtRange += numPoints;
+            pcPtRange = Math.min(pcPtRange, pcMaxRange);
+        } else if (divIDE.panelJSData[elID].binaryDrawType == 'match') {
+            pcNextI = 0;
+            pcPtRange = numPoints;
+        }
+        geometry.setDrawRange(0, numPoints);
 
         var position = geometry.attributes.position.array
-        var intensities = geometry.attributes.intensities.array
-        var moments = geometry.attributes.moments.array
+        var intensity = geometry.attributes.intensity.array
+        var color = geometry.attributes.color.array
 
-        for(var i = 0; i < numPoints; i++){
+        for(var i = 1; i < numPoints + 1; i++){
             position[pcNextI*3 + 0] = view.getFloat32(i*stride + 0 * n_bytes, true);
             position[pcNextI*3 + 1] = view.getFloat32(i*stride + 1 * n_bytes, true);
             position[pcNextI*3 + 2] = view.getFloat32(i*stride + 2 * n_bytes, true);
-            intensities[pcNextI + 0] = view.getFloat32(i*stride + 3 * n_bytes, true);
-            moments[pcNextI*3 + 0] = view.getFloat32(i*stride + 4 * n_bytes, true);
-            moments[pcNextI*3 + 1] = view.getFloat32(i*stride + 5 * n_bytes, true);
-            moments[pcNextI*3 + 2] = view.getFloat32(i*stride + 6 * n_bytes, true);
-            pointCloud.incrementPcNextI(pcNextI, pcMaxRange)
+            if (nColumns == 4){
+                intensities[pcNextI + 0] = view.getFloat32(i*stride + 3 * n_bytes, true);    
+            } else if (nColumns == 6){
+                color[pcNextI*3 + 0] = view.getFloat32(i*stride + 3 * n_bytes, true);
+                color[pcNextI*3 + 1] = view.getFloat32(i*stride + 4 * n_bytes, true);
+                color[pcNextI*3 + 2] = view.getFloat32(i*stride + 5 * n_bytes, true);
+            }            
+            pcNextI = pointCloud.incrementPcNextI(pcNextI, pcMaxRange);
         }
-        updatePointCloudColors(geometry, 'position', 2);
+        if (nColumns == 4){
+            pointCloud.updatePointCloudColors(geometry, 'intensity', 0);    
+        } else if (nColumns == 6){
+            geometry.attributes.color.needsUpdate = true;			
+        }
         geometry.attributes.position.needsUpdate = true;			
-        geometry.setDrawRange(0, pcPtRange);
 
         // try to free some of this memory
         buffer = null;
         view = null;
 
-        // Ask for the next set of data
-        if (wsStreaming){
-            ws.send('sendData');
-// 					setTimeout(ws.send('stream'), 1000);	
+        // In case this is the first time
+        var particles = divIDE.panelJSData[elID].binaryParticles;
+        if (particles === undefined){
+           particles = new THREE.Points( geometry, material );
+           divIDE.panelJSData[elID].binaryParticles = particles;
+           divIDE.panelJSData[elID].scene.add( particles );
         }
 
+        // Let everyone know I'm ready to receive more data
+        divIDE.panelJSData[elID].status = 'ready';
     }
 }
 
