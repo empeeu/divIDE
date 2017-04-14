@@ -228,10 +228,14 @@ pointCloud = {
         var panelContainer = $('#' + elID);
         var camera = divIDE.panelJSData[elID].camera;
         var controls = divIDE.panelJSData[elID].controls;
-        var particles = divIDE.panelJSData[elID].particles;
+        var particles = divIDE.panelJSData[elID].binaryParticles;
         if (particles == undefined){
             particles = divIDE.panelJSData[elID].stringParticles;
         }
+        if (particles == undefined){
+            return;
+        }
+
                 
         x = ((event.clientX - panelContainer.offset().left) / panelContainer.innerWidth()) * 2 - 1;
         y = -((event.clientY - panelContainer.offset().top) / panelContainer.innerHeight()) * 2 + 1;
@@ -279,7 +283,7 @@ pointCloud = {
 
     setStringGeometry: function (elID, vertices_json){
         divIDE.panelJSData[elID].status = 'busy';
-        divIDE.onLinkDataChange($('# + elID'), 'status');
+        divIDE.onLinkDataChange($('#' + elID), 'status');
         try {
             var vertices = JSON.parse(vertices_json);
         } catch (e){
@@ -298,12 +302,12 @@ pointCloud = {
         geometry = new THREE.Geometry();
         var docolor = vertices[0].length;
 
-        if (docolor == 4){
+        if (docolor == 4 || docolor == 3){
             if (vmax == undefined){
                 var vmax = -Infinity;
                 for (var i = 0; i < vertices.length; i++){
                     if (vertices[i][3] > vmax){
-                        vmax = vertices[i][3];
+                        vmax = vertices[i][docolor - 1];
                     }
                 }
             }
@@ -311,7 +315,7 @@ pointCloud = {
                 var vmin = Infinity;
                 for (var i = 0; i < vertices.length; i++){
                     if (vertices[i][3] < vmin){
-                        vmin = vertices[i][3];
+                        vmin = vertices[i][docolor -1];
                     }
                 }
             }
@@ -328,9 +332,9 @@ pointCloud = {
             vertex.y = vertices[i][1];
             vertex.z = vertices[i][2];
             geometry.vertices.push(vertex);
-            if (docolor == 4)
+            if (docolor == 4 || docolor == 3)
             {
-                var c = lut.getColor ( vertices[i][3] );
+                var c = lut.getColor ( vertices[i][docolor - 1] );
                 var col = new THREE.Color(c.r, c.g, c.b);
                 geometry.colors.push(col);
             } else if (docolor == 6) {
@@ -338,8 +342,7 @@ pointCloud = {
                                           vertices[i][4],
                                           vertices[i][5]);
                 geometry.colors.push(col);
-            }
-
+            } 
         }
         var stringParticles = new THREE.Points( geometry, material );
         scene.add( stringParticles );
