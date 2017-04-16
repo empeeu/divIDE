@@ -42,7 +42,7 @@ pointCloud = {
       if (key == 'stringGeometry'){
          pointCloud.setStringGeometry(elID, data);  
       } else if (key == 'binaryGeometry') { 
-        setBinaryGeometry(elID, buffer)
+        pointCloud.setBinaryGeometry(elID, data);
       } else if (key == 'status') { 
          divIDE.panelJSData[elID].status = data;
       } else if (key == 'binaryDrawType') {
@@ -91,7 +91,7 @@ pointCloud = {
 
 //         var numPoints = pcMaxRange;
 //         var positions = new Float32Array(numPoints*3);
-//         var intensities = new Float32Array(numPoints);
+//         var intensity = new Float32Array(numPoints);
 //         var moments = new Float32Array(numPoints*3);
 
 //         for(var i = 0; i < 10; i++){
@@ -178,6 +178,7 @@ pointCloud = {
             pcNextI: pcNextI,
             windowHalfX: windowHalfX,
             windowHalfY: windowHalfY,
+            status: 'ready'
         };
 
         if (showStats){
@@ -466,19 +467,21 @@ pointCloud = {
         var color = geometry.attributes.color.array
 
         for(var i = 1; i < numPoints + 1; i++){
-            position[pcNextI*3 + 0] = view.getFloat32(i*stride + 0 * n_bytes, true);
-            position[pcNextI*3 + 1] = view.getFloat32(i*stride + 1 * n_bytes, true);
-            position[pcNextI*3 + 2] = view.getFloat32(i*stride + 2 * n_bytes, true);
+            position[pcNextI*3 + 0] = view.getFloat32(i*stride + 0 * nBytes, true);
+            position[pcNextI*3 + 1] = view.getFloat32(i*stride + 1 * nBytes, true);
+            position[pcNextI*3 + 2] = view.getFloat32(i*stride + 2 * nBytes, true);
             if (nColumns == 4){
-                intensities[pcNextI + 0] = view.getFloat32(i*stride + 3 * n_bytes, true);    
+                intensity[pcNextI + 0] = view.getFloat32(i*stride + 3 * nBytes, true);    
             } else if (nColumns == 6){
-                color[pcNextI*3 + 0] = view.getFloat32(i*stride + 3 * n_bytes, true);
-                color[pcNextI*3 + 1] = view.getFloat32(i*stride + 4 * n_bytes, true);
-                color[pcNextI*3 + 2] = view.getFloat32(i*stride + 5 * n_bytes, true);
+                color[pcNextI*3 + 0] = view.getFloat32(i*stride + 3 * nBytes, true);
+                color[pcNextI*3 + 1] = view.getFloat32(i*stride + 4 * nBytes, true);
+                color[pcNextI*3 + 2] = view.getFloat32(i*stride + 5 * nBytes, true);
             }            
             pcNextI = pointCloud.incrementPcNextI(pcNextI, pcMaxRange);
         }
-        if (nColumns == 4){
+        if (nColumns == 3){
+            pointCloud.updatePointCloudColors(geometry, 'position', 2);    
+        } else if (nColumns == 4){
             pointCloud.updatePointCloudColors(geometry, 'intensity', 0);    
         } else if (nColumns == 6){
             geometry.attributes.color.needsUpdate = true;			
@@ -492,6 +495,7 @@ pointCloud = {
         // In case this is the first time
         var particles = divIDE.panelJSData[elID].binaryParticles;
         if (particles === undefined){
+           var material = divIDE.panelJSData[elID].material;
            particles = new THREE.Points( geometry, material );
            divIDE.panelJSData[elID].binaryParticles = particles;
            divIDE.panelJSData[elID].scene.add( particles );

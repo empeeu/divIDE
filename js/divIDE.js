@@ -59,6 +59,7 @@ var divIDE = {
   },
 
   panelDataChangeId: undefined,  // To avoid circular references when data changes
+  panelDataChangeKey: undefined,  // To avoid circular references when data changes
   
   // Support for registering a new panel
   registerPanel: function (panel) {
@@ -145,6 +146,7 @@ var divIDE = {
     if (divIDE.panelDataChangeId != id && divIDE.panelDataLinks[id] != undefined){
       if (divIDE.panelDataChangeId == undefined){
         divIDE.panelDataChangeId = id;
+        divIDE.panelDataChangeKey = key;
         changelock=false;
       }
       var data = divIDE.panelTypes[panelType].getPanelData(parentElem, key);
@@ -157,7 +159,8 @@ var divIDE = {
         // multiple keys in the to data. 
         // Think setting both the x and y data for a plot using the same input
         if (links[link] != undefined &&
-               linkElem.attr('id') != divIDE.panelDataChangeId){
+               (linkElem.attr('id') != divIDE.panelDataChangeId ||
+                links[link] != divIDE.panelDataChangeKey)){
           for (var i=0; i < links[link].length; i++){
             divIDE.panelTypes[linkPanelType].setPanelData(linkElem, data, links[link][i]);
             divIDE.onLinkDataChange(linkElem, links[link][i]);

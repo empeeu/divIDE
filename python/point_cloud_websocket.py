@@ -7,18 +7,20 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
     t = time.clock()
     def open(self):
         print("WebSocket opened")
+        self.send_data()
 
     def on_message(self, message):
         print message
         # self.write_message(u"You said: " + message.upper())
-        if message.lower() == 'senddata':
+        if message.lower() == 'ready':
             self.send_data()
     
     def send_data(self):
         x = np.linspace(0, 1, 64)
         X, Y = np.meshgrid(x, x)
         Z = 0.1*np.sin(np.pi * X + self.t / 2) * np.sin(2*np.pi * Y + self.t / 4)
-        data = np.column_stack((X.ravel(), Y.ravel(), Z.ravel(), Z.ravel(), Z.ravel(), Z.ravel(), Z.ravel()))
+        data = np.column_stack((X.ravel(), Y.ravel(), Z.ravel(), Z.ravel()))
+        data = np.row_stack(([4, 0, 0, 0], data))
         self.write_message(data.astype(np.float32).tobytes(), binary=True)
         self.t = time.clock()
 
