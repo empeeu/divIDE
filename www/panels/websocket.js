@@ -5,11 +5,21 @@ webSocket = {
         return html;
     }, 
     panelAdminHTML: function(uniqueParentElementID) {
+        var loc = window.location;
+        var url = '';
+        if (loc.protocol === "https:"){
+            url = 'wss://';
+        } else if (loc.protocol === "file:"){
+            url = 'ws://localhost:8888'
+        } else {
+            url = 'ws://';
+        }
+        url += loc.host + ':8888/ws';
         var html = '';
         html += '\
             <input type="text" class="wsurl" id="';
         html += uniqueParentElementID;
-        html += '-wsurl" value="ws://url:port"/>\
+        html += '-wsurl" value="' + url + '"/>\
             <button class="button" type="button" onclick="webSocket.panelConnect(this)">\
                 Connect\
             </button>\
@@ -26,7 +36,8 @@ webSocket = {
     linkDataKeys: [
         'wsurl',
         'stringData',
-        'binaryData'
+        'binaryData',
+        'jsonData'
     ],
 
     getPanelData: function(parentElement, key){
@@ -36,6 +47,9 @@ webSocket = {
       } else if (key == 'stringData') { 
          var datakey = parentElement.find('.wsurl').attr('id')
          return divIDE.panelJSData[datakey].stringData;
+      } else if (key == 'jsonData') { 
+         var datakey = parentElement.find('.wsurl').attr('id')
+         return divIDE.panelJSData[datakey].jsonData;
       } else if (key == 'binaryData') { 
          var datakey = parentElement.find('.wsurl').attr('id')
          return divIDE.panelJSData[datakey].binaryData;
@@ -54,6 +68,13 @@ webSocket = {
          } catch(e) { 
             return '';
          }
+      } else if (key == 'jsonData') { 
+         var datakey = parentElement.find('.wsurl').attr('id');
+         try {
+            return divIDE.panelJSData[datakey].ws.send(data);
+         } catch(e) { 
+            return '';
+         }         
       } else if (key == 'binaryData') { 
          var datakey = parentElement.find('.wsurl').attr('id');
          try {
