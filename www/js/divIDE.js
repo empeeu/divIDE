@@ -813,7 +813,8 @@ layout = {
 
   importLayout: function(layoutObj){
       divIDE.panelDataLinks = layoutObj.panelDataLinks;
-      divIDE.nPanels = layoutObj.nPanels;
+      // The correct number of panels should naturally be populated, we can check this at the end
+      divIDE.nPanels = 0; //layoutObj.nPanels;
       // clear everything
       $('#mainDivIDE').html("\
         <div class='layoutToolbarButtons tiny button-group'>\
@@ -826,6 +827,9 @@ layout = {
       divIDE.setPanelContents(layoutObj.mainDivIDE);
       layout.layoutEdit($('#tmLayoutEdit'));
       layout.layoutEdit($('#tmLayoutEdit'));
+      if (divIDE.nPanels !== layoutObj.nPanels){
+        alert('Unknown Layout Import Error. ' + divIDE.nPanels + '!=' + layoutObj.nPanels);
+      }
   },
 
   // Ready function
