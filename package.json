@@ -1,0 +1,17 @@
+{
+  "name": "divide",
+  "version": "0.1.0",
+  "description": "Divide is a ...",
+  "scripts": {
+    "serve": "live-server --open=\"www/index.html\" --watch=\"www\" --ignore=\"**/*.css\" "
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://code.crearecomputing.com/mpu/WebApp.git"
+  },
+  "author": "mpu@creare.com",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "live-server": "1.2.0"
+  }
+}

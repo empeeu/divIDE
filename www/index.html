@@ -3,10 +3,14 @@
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>divIDE Layout Test</title>
+    <title>DivIDE</title>
+
+    <!-- Load CSS -->
     <link rel="stylesheet" href="external/css/foundation.css" />
+    <link rel="stylesheet" href="external/css/foundation-icons.css" />
     <link rel='stylesheet' href='css/divIDE.css'></style>
 </head>
+
 <body>
     <div id='outer'>
         <div id='topMenu' class='menuBar'>
@@ -30,22 +34,28 @@
         </div>
     </div>
 
-    <script src='external/jquery-3.1.1.js'></script>    
+    <!-- Dependencies -->
+    <script src="external/js/jquery-3.1.1.js"></script>    
+    <script src="external/js/what-input.js"></script>
+    <script src="external/js/foundation.js"></script>
+
+    <!-- DivIDE Engine -->
     <script src='js/divIDE.js'></script>
+
+    <!-- ##### Panels ##### -->
+
+    <!-- Core Panels -->
     <link rel='stylesheet' href='panels/textarea.css'></style>
     <script src='panels/textarea.js'></script>
     <script src='panels/websocket.js'></script>
-<!--  Point Cloud _+ dependencies  -->
+
+    <!--  Point Cloud _+ dependencies  -->
     <script src="panels/js/three.min.js"></script>
     <script src="panels/js/OrbitControls.js"></script>
     <script src="panels/js/Lut.js"></script>
     <script src="panels/js/Detector.js"></script>
     <script src="panels/js/stats.min.js"></script>
     <script src="panels/pointcloud.js"></script>
-<!--     <script src="external/js/vendor/jquery.js"></script> -->
-    <script src="external/js/vendor/what-input.js"></script>
-    <script src="external/js/vendor/foundation.js"></script>
-    <script src="external/js/app.js"></script>
 
 </body>
 </html>
