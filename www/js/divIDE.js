@@ -215,7 +215,50 @@ var divIDE = {
     if (dlkt === undefined){
       dlk[parentElem.attr('id') + '-container'] = [];
     }
+    if (dlk[parentElem.attr('id') + '-container'].indexOf(toPanelKey.val()) >=0)
+    {
+      // Link already exists
+      return;
+    }
     dlk[parentElem.attr('id') + '-container'].push(toPanelKey.val());
+
+    // Save data to panel by adding line and resetting fields
+    var toPanelLink = parentElem.attr('id').split('-')[1];
+    var layoutTable = parentElem.find('.layoutLinkSetup tbody');
+    layoutTable.append('\
+      <tr class="layoutLinked">\
+      <td class="toPanelKeyLinked">' + toPanelLink + '.' + toPanelKey.val() + '</td>\
+      <td class="fromPanelKeyLinked"><i class="fi-arrow-left"> ' + fromPanelLink.val() + '.' + fromPanelKey.val() + '</td>\
+      <td><a href="#" class="layoutToolBarButton"\
+             onclick="divIDE.removeDataLink(this)">\
+             <i class="fi-unlink"></i></a></td></tr>');
+
+    // Clean up container
+    toPanelKey.val('-1');
+    fromPanelKey.val('-1');
+    fromPanelLink.val('-1');
+  },
+
+  removeDataLink: function(elem){
+    // todo
+    var linkRowData = $(elem).closest('tr');
+    var toPanelKeyLinked = linkRowData.find('.toPanelKeyLinked').text();
+    var fromPanelKeyLinked = linkRowData.find('.fromPanelKeyLinked').text().split('.');
+    var toPanelKey = toPanelKeyLinked[1];
+    var toPanelLink = toPanelKeyLinked[0];
+    var fromPanelKey = fromPanelKeyLinked[1];
+    var fromPanelLink = fromPanelKeyLinked[0].substring(1); // substring because of space between data and arrow
+
+    var fromID = 'divIDEPanelNumber-' + fromPanelLink + '-container';
+    var toID = 'divIDEPanelNumber-' + toPanelLink + '-container';
+
+    var dl = divIDE.panelDataLinks[fromID][fromPanelKey][toID];
+    var index = dl.indexOf(toPanelKey);
+    divIDE.panelDataLinks[fromID][fromPanelKey][toID].splice(index, 1);
+    if (divIDE.panelDataLinks[fromID][fromPanelKey][toID].length === 0){
+      delete divIDE.panelDataLinks[fromID][fromPanelKey][toID];
+    }
+    linkRowData.remove();
   },
 
 
@@ -342,25 +385,25 @@ var main = {
     }
   },
   topMenuItems: {
-    File: {
-      subMenus: {
-        Open: {
-          id: 'tmFileOpen'
-        },
-        Recent: {
-          id: 'tmFileRecent',
-          subMenus: {
-            item1: {
-              id: 'item1'
-            },
-            item2: {
-              id: 'item2'
-            }
-          }
-        }
-      },
-      id: "tmFile"
-    }
+//     File: {
+//       subMenus: {
+//         Open: {
+//           id: 'tmFileOpen'
+//         },
+//         Recent: {
+//           id: 'tmFileRecent',
+//           subMenus: {
+//             item1: {
+//               id: 'item1'
+//             },
+//             item2: {
+//               id: 'item2'
+//             }
+//           }
+//         }
+//       },
+//       id: "tmFile"
+//     }
   },
   showMenu: function(panelType, event) {
     if ($('#tmLayoutEdit').data('clicks')){
@@ -655,8 +698,26 @@ layout = {
       // if it has any children, let's grab those ids as well
       var childElems = $(parentElem).find('[panelType=DivIDELayout]');
 
-      // Remove this panel number as a data link option
-       var panellinks = $('.fromPanelLink');
+       // Remove this panel number as a data link option
+       var panelN = id.split('-')[1];
+       var panellinks = $('.layoutLinked .fromPanelKeyLinked');
+       for (var i = 0; i < panellinks.length; i++){
+         var linkN = panellinks[i].innerText.split('.')[0].substring(1);
+         if (linkN === panelN){
+           divIDE.removeDataLink(panellinks[i]);
+         }
+       }
+       panellinks = $(parentElem).find('.layoutLinked .fromPanelKeyLinked');
+       var otherId = {};
+       for (var i = 0; i < panellinks.length; i++){
+           otherId[divIDE.getCtxTarget(panellinks[i]).id] = 1;
+           divIDE.removeDataLink(panellinks[i]);
+       }
+       for (var oID in otherId){
+          delete divIDE.panelDataLinks[oID];  
+       }
+       
+
        var oprem = panellinks.find('option[value=' + id.split('-')[1] + ']');
        oprem.remove();
        for (var i = 0; i < childElems.length; i++){
