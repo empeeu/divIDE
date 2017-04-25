@@ -240,7 +240,6 @@ var divIDE = {
   },
 
   removeDataLink: function(elem){
-    // todo
     var linkRowData = $(elem).closest('tr');
     var toPanelKeyLinked = linkRowData.find('.toPanelKeyLinked').text();
     var fromPanelKeyLinked = linkRowData.find('.fromPanelKeyLinked').text().split('.');
@@ -693,37 +692,43 @@ layout = {
   },
 
   removePanel: function (){
-      parentElem = divIDE.ctxTarget;
+      var parentElem = divIDE.ctxTarget;
       var id = $(parentElem).attr('id');
       // if it has any children, let's grab those ids as well
       var childElems = $(parentElem).find('[panelType=DivIDELayout]');
+      var ids = [];
+      for (var i=0; i < childElems.length; i++){
+        ids.push(childElems[i].id.split('-')[1]);
+      }
+      ids.push(id.split('-')[1]);
 
-       // Remove this panel number as a data link option
+        // Remove this panel number and children as a fromdata link options
        var panelN = id.split('-')[1];
-       var panellinks = $('.layoutLinked .fromPanelKeyLinked');
+       var panellinks = $('.layoutLinked .fromPanelKeyLinked i');
        for (var i = 0; i < panellinks.length; i++){
-         var linkN = panellinks[i].innerText.split('.')[0].substring(1);
-         if (linkN === panelN){
+         var linkN = panellinks[i].innerHTML.split('.')[0].substring(1);
+         if (ids.indexOf(linkN) !== -1){
            divIDE.removeDataLink(panellinks[i]);
          }
        }
-       panellinks = $(parentElem).find('.layoutLinked .fromPanelKeyLinked');
-       var otherId = {};
-       for (var i = 0; i < panellinks.length; i++){
-           otherId[divIDE.getCtxTarget(panellinks[i]).id] = 1;
-           divIDE.removeDataLink(panellinks[i]);
-       }
-       for (var oID in otherId){
-          delete divIDE.panelDataLinks[oID];  
-       }
-       
-
+       panellinks = $('.layoutLinkSetup');
        var oprem = panellinks.find('option[value=' + id.split('-')[1] + ']');
        oprem.remove();
+       delete divIDE.panelDataLinks[id + '-container'];
        for (var i = 0; i < childElems.length; i++){
-         id = $(childElems[i]).attr('id').split('-')[1];
-         var oprem = panellinks.find('option[value=' + id + ']');
+         var id2 = $(childElems[i]).attr('id').split('-')[1];
+         delete divIDE.panelDataLinks[childElems[i].id + '-container'];
+         var oprem = panellinks.find('option[value=' + id2 + ']');
          oprem.remove();
+       }
+
+       // Remove this panel number and children as todata link options
+       panellinks = $('.layoutLinked .toPanelKeyLinked i');
+       for (var i = 0; i < panellinks.length; i++){
+         var linkN = panellinks[i].innerHTML.split('.')[0];
+         if (ids.indexOf(linkN) !== -1){
+           divIDE.removeDataLink(panellinks[i]);
+         }
        }
 
       if (id != 'main'){

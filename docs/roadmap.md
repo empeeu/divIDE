@@ -13,7 +13,7 @@
 * Document usage from user side
 * Document panel development
 * Document api for developers
-* Deleted panel data links are not cleaned up
+* ~~Deleted panel data links are not cleaned up~~
     * ~~Also, can only specify one link per panel right now. Multiple links should be fine to specify. probably fix this along with the above.~~
     * When importing layout, need to populate the links 
 * On import, the panel data links in the forms are not properly restored
