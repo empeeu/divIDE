@@ -1,19 +1,13 @@
 # Road Map
 
 ## TODO:
-
-* ~~Port three.js point-cloud example to divIDE and make it a panel~~
-   * Sort out bugs for saving panels
-* ~~As a proof of concept, add a line plot box~~
-* ~~as a proof of concept, add an excel spreadsheet box~~
-* ~~Sort out the data sharing between the text box and the plot box~~
-* ~~Sort out websockets?~~
+* Document panel development
+* Document usage from user side
+* Document api for developers
 
 ## MINOR TODOS:
-* Document usage from user side
-* Document panel development
-* Document api for developers
-* ~~Deleted panel data links are not cleaned up~~
-    * ~~Also, can only specify one link per panel right now. Multiple links should be fine to specify. probably fix this along with the above.~~
-    * ~~When importing layout, need to populate the links~~ 
-* ~~On import, the panel data links in the forms are not properly restored~~
+* ~~Port three.js point-cloud example to divIDE and make it a panel~~
+   * Sort out bugs for saving panels
+
+## KNOWN BUGS:
+* When creating a layout, and deleting some panels. Upon restoring the layout, it likely that the datalinks may be broken? It is likely that something that relies on nPanels will be broken. 
