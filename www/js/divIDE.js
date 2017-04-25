@@ -327,6 +327,30 @@ var divIDE = {
     }
   },
 
+  populateDataLinks: function(){
+    for (var fromPanel in divIDE.panelDataLinks){
+      for (var fromKey in divIDE.panelDataLinks[fromPanel]){
+        for (var toPanel in divIDE.panelDataLinks[fromPanel][fromKey]){
+          for (var i=0; i < divIDE.panelDataLinks[fromPanel][fromKey][toPanel].length; i++){
+            var toKey = divIDE.panelDataLinks[fromPanel][fromKey][toPanel][i];
+            var elem = $('#' + toPanel.replace('-container', ''));
+            $(elem).find('.toPanelKey').val(toKey);
+            $(elem).find('.fromPanelLink').val(fromPanel);
+            $(elem).find('.fromPanelKey').val(fromKey);
+            var layoutTable = $(elem).find('.layoutLinkSetup tbody');
+                      layoutTable.append('\
+              <tr class="layoutLinked">\
+              <td class="toPanelKeyLinked">' + toPanel.split('-')[1] + '.' + toKey + '</td>\
+              <td class="fromPanelKeyLinked"><i class="fi-arrow-left"> ' + fromPanel.split('-')[1] + '.' + fromKey + '</td>\
+              <td><a href="#" class="layoutToolBarButton"\
+                     onclick="divIDE.removeDataLink(this)">\
+                     <i class="fi-unlink"></i></a></td></tr>');     
+          }
+        }
+      }
+    }
+  },
+
   // Setting up the common functions, general utility
   // Downloading a file: http://stackoverflow.com/questions/3665115/create-a-file-in-memory-for-user-to-download-not-through-server
   download: function(filename, text) {
@@ -891,6 +915,7 @@ layout = {
         </div>\
        ");
       divIDE.setPanelContents(layoutObj.mainDivIDE);
+      divIDE.populateDataLinks();
       layout.layoutEdit($('#tmLayoutEdit'));
       layout.layoutEdit($('#tmLayoutEdit'));
       if (divIDE.nPanels !== layoutObj.nPanels){
