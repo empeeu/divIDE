@@ -356,16 +356,20 @@ pointCloud = {
     },
 
     // Functionality to set the color based on a colormap
-    setPointColor: function(colorArray, array, arrayStride, arrayOffset, vmin, vmax){
+    setPointColor: function(colorArray, array, arrayStride, arrayOffset, vmin, vmax, end){
         if (arrayStride == undefined){
             var arrayStride = 1;
         }
+        if (end === undefined){
+            end = array.length / arrayStride;
+        }
+
         if (arrayOffset == undefined){
             var arrayOffset = 0;
         }
         if (vmax == undefined){
             var vmax = -Infinity;
-            for (var i = 0; i < array.length / arrayStride; i++){
+            for (var i = 0; i < end; i++){
                 if (array[i*arrayStride + arrayOffset] > vmax){
                     vmax = array[i*arrayStride + arrayOffset];
                 }
@@ -373,7 +377,7 @@ pointCloud = {
         }
         if (vmin == undefined){
             var vmin = Infinity;
-            for (var i = 0; i < array.length / arrayStride; i++){
+            for (var i = 0; i < end; i++){
                 if (array[i*arrayStride + arrayOffset] < vmin){
                     vmin = array[i*arrayStride + arrayOffset];
                 }
@@ -385,7 +389,7 @@ pointCloud = {
         lut.setMax ( vmax );
         lut.setMin ( vmin );
         var c;
-        for (var i = 0; i < array.length / arrayStride; i++){
+        for (var i = 0; i < end; i++){
             c = lut.getColor ( array[i*arrayStride + arrayOffset] )
             colorArray[i*3 + 0] = c.r;
             colorArray[i*3 + 1] = c.g;
@@ -393,14 +397,14 @@ pointCloud = {
         } 
     }, 
 
-    updatePointCloudColors: function(geometry, attr, col, vmin, vmax){
+    updatePointCloudColors: function(geometry, attr, col, vmin, vmax, end){
         if (col == undefined){
             var col = 0;
         }
         pointCloud.setPointColor(
             geometry.attributes.color.array,
             geometry.attributes[attr].array,
-            geometry.attributes[attr].itemSize, col, vmin, vmax);
+            geometry.attributes[attr].itemSize, col, vmin, vmax, end);
         geometry.attributes.color.needsUpdate = true;			
     },
 
@@ -483,11 +487,11 @@ pointCloud = {
             pcNextI = pointCloud.incrementPcNextI(pcNextI, pcMaxRange);
         }
         divIDE.panelJSData[elID].pcNextI = pcNextI;
-        
+
         if (nColumns == 3){
-            pointCloud.updatePointCloudColors(geometry, 'position', 2);    
+            pointCloud.updatePointCloudColors(geometry, 'position', 2, undefined, undefined, pcNextI);    
         } else if (nColumns == 4){
-            pointCloud.updatePointCloudColors(geometry, 'intensity', 0);    
+            pointCloud.updatePointCloudColors(geometry, 'intensity', 0, undefined, undefined, pcNextI);
         } else if (nColumns == 6){
             geometry.attributes.color.needsUpdate = true;			
         }
