@@ -99,8 +99,13 @@ webSocket = {
         divIDE.panelJSData[datakey].ws.binaryType = 'arraybuffer';
         divIDE.panelJSData[datakey].ws.onmessage = function (e) {
             if (typeof e.data == 'string'){
-                divIDE.panelJSData[datakey].stringData = e.data;
-                divIDE.onLinkDataChange($(parentElement).parent('div'), 'stringData');
+                try {
+                    divIDE.panelJSData[datakey].jsonData = JSON.parse(e.data);
+                    divIDE.onLinkDataChange($(parentElement).parent('div'), 'jsonData');
+                } catch(e) {
+                    divIDE.panelJSData[datakey].stringData = e.data;
+                    divIDE.onLinkDataChange($(parentElement).parent('div'), 'stringData');
+                }
             } else {
                 divIDE.panelJSData[datakey].binaryData = e.data;
                 divIDE.onLinkDataChange($(parentElement).parent('div'), 'binaryData');

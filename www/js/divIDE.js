@@ -690,6 +690,7 @@ layout = {
       if (unit === 'flex'){
           elem.css('flex', size);
           elem.css('max-' + wh, '');
+          elem.css('min-' + wh, '');
           inputs = elem.find('input');
           for (var i = 0; i < inputs.length; i++){
               var u = $(inputs[i]).closest('tr').find('select')[0].value;
@@ -700,6 +701,7 @@ layout = {
       } else if (unit === 'px') {
           elem.css('flex', '');
           elem.css('max-'+ wh, size + unit);
+          elem.css('min-'+ wh, size + unit);
       }
   },
 
@@ -766,7 +768,7 @@ layout = {
   },
 
   addPanel: function (elId){
-    parentElem = $(divIDE.ctxTarget);
+    var parentElem = $(divIDE.ctxTarget);
     var classes = this.name + ' rowItems';
     if ($('#tmLayoutEdit').data('clicks')){
       classes += ' editBorderStyle'

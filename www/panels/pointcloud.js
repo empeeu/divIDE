@@ -178,7 +178,8 @@ pointCloud = {
             pcNextI: pcNextI,
             windowHalfX: windowHalfX,
             windowHalfY: windowHalfY,
-            status: 'ready'
+            status: 'ready',
+            binaryDrawType: 'match'
         };
 
         if (showStats){
@@ -452,7 +453,7 @@ pointCloud = {
         // Figure out how to adjust the draw range
         var pcNextI = divIDE.panelJSData[elID].pcNextI;
         var pcMaxRange = divIDE.panelJSData[elID].pcMaxRange;
-        var pxPtRange = divIDE.panelJSData[elID].pxPtRange;
+        var pcPtRange = divIDE.panelJSData[elID].pcPtRange;
         if (divIDE.panelJSData[elID].binaryDrawType == 'fill'){
             pcPtRange += numPoints;
             pcPtRange = Math.min(pcPtRange, pcMaxRange);
@@ -460,7 +461,9 @@ pointCloud = {
             pcNextI = 0;
             pcPtRange = numPoints;
         }
-        geometry.setDrawRange(0, numPoints);
+        divIDE.panelJSData[elID].pcPtRange = pcPtRange;
+
+        geometry.setDrawRange(0, pcPtRange);
 
         var position = geometry.attributes.position.array
         var intensity = geometry.attributes.intensity.array
@@ -479,6 +482,8 @@ pointCloud = {
             }            
             pcNextI = pointCloud.incrementPcNextI(pcNextI, pcMaxRange);
         }
+        divIDE.panelJSData[elID].pcNextI = pcNextI;
+        
         if (nColumns == 3){
             pointCloud.updatePointCloudColors(geometry, 'position', 2);    
         } else if (nColumns == 4){
@@ -487,6 +492,7 @@ pointCloud = {
             geometry.attributes.color.needsUpdate = true;			
         }
         geometry.attributes.position.needsUpdate = true;			
+
 
         // try to free some of this memory
         buffer = null;
