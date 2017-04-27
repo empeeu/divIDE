@@ -509,6 +509,7 @@ pointCloud = {
         if (particles === undefined){
            var material = divIDE.panelJSData[elID].material;
            particles = new THREE.Points( geometry, material );
+           particles.frustumCulled = false;
            divIDE.panelJSData[elID].binaryParticles = particles;
            divIDE.panelJSData[elID].scene.add( particles );
         }
