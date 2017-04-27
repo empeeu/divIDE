@@ -4,7 +4,8 @@ webSocket = {
         var html = '';
         return html;
     }, 
-    panelAdminHTML: function(uniqueParentElementID) {
+
+    autoUrl: function(){
         var loc = window.location;
         var url = '';
         if (loc.protocol === "https:"){
@@ -14,12 +15,16 @@ webSocket = {
         } else {
             url = 'ws://';
         }
-        url += loc.host + ':8888/ws';
+        url += loc.host + '/ws';
+        return url;
+    },
+
+    panelAdminHTML: function(uniqueParentElementID) {
         var html = '';
         html += '\
             <input type="text" class="wsurl" id="';
         html += uniqueParentElementID;
-        html += '-wsurl" value="' + url + '"/>\
+        html += '-wsurl" value="' + webSocket.autoUrl + '"/>\
             <button class="button" type="button" onclick="webSocket.panelConnect(this)">\
                 Connect\
             </button>\
@@ -58,6 +63,9 @@ webSocket = {
 
     setPanelData: function(parentElement, data, key) {
       if (key == 'wsurl'){
+         if (data === 'auto'){
+             data = webSocket.autoUrl();
+         }
          var ta = $(parentElement).find('.wsurl');
          ta.val(data);  
          webSocket.panelConnect(parentElement);
