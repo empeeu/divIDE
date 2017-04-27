@@ -179,7 +179,8 @@ pointCloud = {
             windowHalfX: windowHalfX,
             windowHalfY: windowHalfY,
             status: 'ready',
-            binaryDrawType: 'match'
+            binaryDrawType: 'match',
+            rayCastThreshold: 1
         };
 
         if (showStats){
@@ -244,7 +245,8 @@ pointCloud = {
         dir = new THREE.Vector3(x, y, -1)
         dir.unproject(camera)
 
-        ray = new THREE.Raycaster(camera.position, dir.sub(camera.position).normalize())
+        ray = new THREE.Raycaster(camera.position, dir.sub(camera.position).normalize());
+        ray.params.Points.threshold = divIDE.panelJSData[elID].rayCastThreshold;
         var intersects = ray.intersectObject(particles);
         if ( intersects.length > 0 )
         {
