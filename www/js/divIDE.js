@@ -80,10 +80,7 @@ var divIDE = {
   },
   // Functions related to adding top and context menus
   // helper function for recursion
-  _addSubMenus: function (menus, idprepend){
-    if (idprepend === undefined){
-      var idprepend = '';
-    }
+  _addSubMenus: function (menus){
     var html = '';
     for (var key in menus){
       var attrs = '';
@@ -117,7 +114,7 @@ var divIDE = {
     var html = '';
 
     // Add up them htmls
-    html += divIDE._addSubMenus(panel.topMenuItems, 'topMenu');  
+    html += divIDE._addSubMenus(panel.topMenuItems);  
     parent.append(html);
   },
 
