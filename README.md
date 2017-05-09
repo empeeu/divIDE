@@ -1,10 +1,12 @@
 # DivIDE
 
-Divide is a ...
+***divIDE*** is a javascript panel-management library. 
+
+Many GUI applications have multiple panels/panes/windows where graphics/buttons/toolbars are displayed. ***divIDE*** allows these divisions in a window to be created an managed. Each panel, then, can be a type, like a textarea, a websocket, a 3D pointcloud viewer, or any user-defined plug-in. Consequently, divIDE helps streamline the process of developed IDE's that use `html` `div` elements to divide the browser window. 
 
 ## Quick Start
 
-**DivIDE** requires you to have the following dependencies installed on your machine globally:
+**divIDE** benefits from these dependencies installed on your machine globally:
 
 - Python > 2.7.x, or 3.5.x
 - [Node](nodejs.org) > 6

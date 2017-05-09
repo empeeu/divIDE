@@ -1,9 +1,9 @@
 # Road Map
 
 ## TODO:
-* Document panel development
+* ~~Document panel development~~
 * Document usage from user side
-* Document api for developers
+* ~~Document api for developers~~
 
 ## MINOR TODOS:
 
