@@ -776,6 +776,8 @@ layout = {
 //     var elId = $(parentElem).attr('id') + '-' + $(parentElem).children().length;
     if (elId === undefined){
       var elId = "divIDEPanelNumber-" + divIDE.nPanels;
+    } else {
+      divIDE.nPanels = Math.max(parseInt(elId.split('-')[1]), divIDE.nPanels - 1);
     }
     // Add this as a potential link for other panels
     var lls = $('.layoutLinkSetup').find('.fromPanelLink');
