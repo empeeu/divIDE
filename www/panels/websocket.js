@@ -110,7 +110,7 @@ webSocket = {
                 try {
                     divIDE.panelJSData[datakey].jsonData = JSON.parse(e.data);
                     divIDE.onLinkDataChange($(parentElement).parent('div'), 'jsonData');
-                } catch(e) {
+                } catch(error) {
                     divIDE.panelJSData[datakey].stringData = e.data;
                     divIDE.onLinkDataChange($(parentElement).parent('div'), 'stringData');
                 }
