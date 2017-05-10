@@ -17,6 +17,10 @@ For the format of new panel, see [panelDesign](panelDesign.md).~~~~
 
 ---
 
+***skipFlexLink***: bool
+
+  * At import, we need to break the link between the width and height setting in the layout panels. This also exposes the option for users to disable this functionality if thi becomes annoying.
+
 ***ctxTarget***: *Element*
 
   * The context-menu target element. When right-clicking on a panel, the right-clicked panel element will be this target. 

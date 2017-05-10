@@ -2,6 +2,7 @@
 // Define the main API
 var divIDE = {
   nPanels: 0,
+  skipFlexLink: false,
   // Support for right-click context menus
   ctxTarget: undefined,
 
@@ -613,7 +614,7 @@ layout = {
     $(trs[i]).find('input').val(parseInt(data.size));
     layout.boxWidthChange($(trs[i]).find('input'));
     $(trs[i]).find('select').val(data.unit);
-    layout.boxWidthChange($(trs[i]).find('select'));
+    layout.boxHeightChange($(trs[i]).find('select'));
 
   },
 
@@ -688,12 +689,14 @@ layout = {
           elem.css('flex', size);
           elem.css('max-' + wh, '');
           elem.css('min-' + wh, '');
-          inputs = elem.find('input');
-          for (var i = 0; i < inputs.length; i++){
-              var u = $(inputs[i]).closest('tr').find('select')[0].value;
-              if (u === 'flex'){
-                  inputs[i].value = size;
-              }
+          if (!divIDE.skipFlexLink){
+            inputs = elem.find('input');
+            for (var i = 0; i < inputs.length; i++){
+                var u = $(inputs[i]).closest('tr').find('select')[0].value;
+                if (u === 'flex'){
+                    inputs[i].value = size;
+                }
+            }
           }
       } else if (unit === 'px') {
           elem.css('flex', '');
@@ -915,7 +918,9 @@ layout = {
             <i class='fi-plus'></i></a>\
         </div>\
        ");
+      divIDE.skipFlexLink = true;
       divIDE.setPanelContents(layoutObj.mainDivIDE);
+      divIDE.skipFlexLink = false;
       divIDE.populateDataLinks();
       layout.layoutEdit($('#tmLayoutEdit'));
       layout.layoutEdit($('#tmLayoutEdit'));
