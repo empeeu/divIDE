@@ -326,7 +326,7 @@ pointCloud = {
             var colorMap = 'rainbow';
             var numberOfColors = 256;
             var lut = new THREE.Lut(colorMap, numberOfColors);
-            lut.setMax ( vmax );
+            lut.setMax ( vmax + 1 * (vmax == vmin) );
             lut.setMin ( vmin );
         }
 
@@ -388,7 +388,7 @@ pointCloud = {
         var colorMap = 'rainbow';
         var numberOfColors = 256;
         var lut = new THREE.Lut(colorMap, numberOfColors);
-        lut.setMax ( vmax );
+        lut.setMax ( vmax + 1 * (vmax == vmin));
         lut.setMin ( vmin );
         var c;
         for (var i = 0; i < end; i++){
