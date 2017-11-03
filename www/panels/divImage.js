@@ -19,7 +19,7 @@ divImage = {
                     onmouseout='divImage.stopPan(this, event)'\
                     draggable=false\
                  /></div-->\
-                 <div style='width:100%; height:100%; object-fit:contain; overflow:hidden; position:relative;\
+                 <div style='width:fit-content; height:fit-content; object-fit:contain; overflow:hidden;\
                         margin-top:auto;margin-bottom:auto;\
                         margin-left: auto;margin-right: auto;'>\
                      <canvas id='imageCanvas' style='width:100%;height:100%;object-fit:contain;image-rendering: pixelated;\
@@ -283,9 +283,9 @@ divImage = {
         for (var i = 0; i < height*width; i++){
             var c = lut.getColor (eqData[i]);
             if (c == undefined){
-                newData[j+0] = 255;
-                newData[j+1] = 255;
-                newData[j+2] = 255;
+                newData[j+0] = 0;
+                newData[j+1] = 0;
+                newData[j+2] = 0;
                 newData[j+3] = 255;
             } else {
                 newData[j+0] = Math.round(c.r * 255);
