@@ -204,7 +204,7 @@ divImage = {
                 var lut = new THREE.Lut('grayscale', numberOfColors);
             }
         }
-        if (vmin == undefined){
+        if (vmin == undefined || equalize){
             var vmin = Infinity;
             for (var i = 0; i < dataSlice.length; i++){
                 if (dataSlice[i] < vmin){
@@ -212,7 +212,7 @@ divImage = {
                 }
             }
         }
-        if (vmax == undefined){
+        if (vmax == undefined || equalize){
             var vmax = -Infinity;
             for (var i = 0; i < dataSlice.length; i++){
                 if (dataSlice[i] > vmax){
@@ -223,8 +223,6 @@ divImage = {
         if (equalize){
             lut.setMax(255);
             lut.setMin(0)
-            vmax = 255;
-            vmin = 0;
         } else {
             lut.setMax ( vmax + 1 * (vmax == vmin) );
             lut.setMin ( vmin );
@@ -237,7 +235,7 @@ divImage = {
             var step = (vmax - vmin) / 255;
             var val, cdf = {};
             for (var i = 0; i < dataSlice.length; i++){
-                val = Math.round(dataSlice[i] / step);
+                val = Math.round((dataSlice[i] - vmin) / step);
                 if (histogram[val] == undefined){
                     histogram[val] = 0;
                 }
@@ -263,8 +261,8 @@ divImage = {
                 divIDE.panelJSData[elID].eqData = eqData;
             }
             for (var i = 0; i < dataSlice.length; i++){
-                    val = Math.round(dataSlice[i] / step);
-                    val = (cdf[val] - cdfmin) / (cdfmax - cdfmin) * (vmax - vmin) + vmin;
+                    val = Math.round((dataSlice[i] - vmin) / step);
+                    val = (cdf[val] - cdfmin) / (cdfmax - cdfmin) * 255;
                     eqData[i] = val;
             }
         } else {
