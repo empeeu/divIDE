@@ -1,0 +1,218 @@
+divImage = {
+    name: "divImage", 
+    panelHTML: function(uniqueParentElementID) {
+        var html = '';
+        html += "<img src='' style='object-fit:contain;max-width:100%;max-height=100%;width=100%;height=100%;image-rendering: pixelated;'/>"
+        return html;
+    }, 
+/*    panelContextMenu: function(parentElement) {
+        // TODO implement     
+    },
+    topMenuItems : {
+        
+    },*/
+
+    linkDataKeys: [
+        'imgData',
+        'imgArray',
+        'imgStrArray',
+        'vmin', 
+        'vmax', 
+        'colormap'
+    ],
+
+    _asLittleEndianHex: function (value, bytes) {
+        // FROM: https://mrcoles.com/low-res-paint/
+        // Convert value into little endian hex bytes
+        // value - the number as a decimal integer (representing bytes)
+        // bytes - the number of bytes that this value takes up in a string
+
+        // Example:
+        // _asLittleEndianHex(2835, 4)
+        // > '\x13\x0b\x00\x00'
+
+        var result = [];
+
+        for (; bytes>0; bytes--) {
+            result.push(String.fromCharCode(value & 255));
+            value >>= 8;
+        }
+
+        return result.join('');
+    },
+
+    _collapseData: function (rows, row_padding) {
+        // FROM: https://mrcoles.com/low-res-paint/
+        // Convert rows of RGB arrays into BMP data
+        var i,
+            rows_len = rows.length,
+            j,
+            pixels_len = rows_len ? rows[0].length : 0,
+            pixel,
+            padding = '',
+            result = [];
+
+        for (; row_padding > 0; row_padding--) {
+            padding += '\x00';
+        }
+
+        for (i=0; i<rows_len; i++) {
+            for (j=0; j<pixels_len; j++) {
+                pixel = rows[i][j];
+                result.push(String.fromCharCode(pixel[2]) +
+                            String.fromCharCode(pixel[1]) +
+                            String.fromCharCode(pixel[0]));
+            }
+            result.push(padding);
+        }
+        return result.join('');
+    },
+
+    _uIntArray2Bitmap(data){
+        var height = data.length,
+            width = height ? data[0].length : 0,
+            row_padding = (4 - (width * 3) %4) %4,
+            num_data_bytes = (width * 3 + row_padding) * height,
+            num_file_bytes = 54 + num_data_bytes,
+            file, 
+            image;
+        height = divImage._asLittleEndianHex(height, 4);
+        width = divImage._asLittleEndianHex(width, 4);
+        num_data_bytes = divImage._asLittleEndianHex(num_data_bytes, 4);
+        num_file_bytes = divImage._asLittleEndianHex(num_file_bytes, 4);
+
+        file = ('BM' +               // "Magic Number"
+                num_file_bytes +     // size of the file (bytes)*
+                '\x00\x00' +         // reserved
+                '\x00\x00' +         // reserved
+                '\x36\x00\x00\x00' + // offset of where BMP data lives (54 bytes)
+                '\x28\x00\x00\x00' + // number of remaining bytes in header from here (40 bytes)
+                width +              // the width of the bitmap in pixels*
+                height +             // the height of the bitmap in pixels*
+                '\x01\x00' +         // the number of color planes (1)
+                '\x18\x00' +         // 24 bits / pixel
+                '\x00\x00\x00\x00' + // No compression (0)
+                num_data_bytes +     // size of the BMP data (bytes)*
+                '\x13\x0B\x00\x00' + // 2835 pixels/meter - horizontal resolution
+                '\x13\x0B\x00\x00' + // 2835 pixels/meter - the vertical resolution
+                '\x00\x00\x00\x00' + // Number of colors in the palette (keep 0 for 24-bit)
+                '\x00\x00\x00\x00' + // 0 important colors (means all colors are important)
+                divImage._collapseData(data, row_padding)
+       );
+       return 'data:image/bmp;base64,' + btoa(file);
+    },
+
+    _colorArray(data, vmin=undefined, vmax=undefined, lut='grayscale'){
+        var height = data.length,
+            width = height ? data[0].length : 0,
+            n_elm = width ? data[0][0].length : 1;
+        if (n_elm == 3){
+            return data;
+        }
+        if (n_elm != undefined){
+            console.log('Unsupported number of pixel elements', n_elm);
+        }
+        if (typeof lut == "string"){
+            var numberOfColors = 256;
+            var lut = new THREE.Lut(lut, numberOfColors);
+        }
+        if (vmin == undefined){
+            var vmin = Infinity;
+            for (var i = 0; i < height; i++){
+                for (var j = 0; j < width; j++){
+                    if (data[i][j] < vmin){
+                        vmin = data[i][j];
+                    }
+                }
+            }
+        }
+        if (vmax == undefined){
+            var vmax = -Infinity;
+            for (var i = 0; i < height; i++){
+                for (var j = 0; j < width; j++){
+                    if (data[i][j] > vmax){
+                        vmax = data[i][j];
+                    }
+                }
+            }
+        }
+        lut.setMax ( vmax + 1 * (vmax == vmin) );
+        lut.setMin ( vmin );
+        
+        var newData = [];
+        for (var i = 0; i < height; i++){
+            newData.push([])
+            for (var j = 0; j < width; j++){
+                var c = lut.getColor (data[i][j]);
+                newData[i].push([Math.round(c.r * 255),
+                                 Math.round(c.g * 255),
+                                 Math.round(c.b * 255)]);
+            }
+        }
+        return newData;
+    },
+
+    getPanelData: function(parentElement, key){
+      if (key == 'imgData'){
+         var img = $(parentElement).find('img');
+         return img.val();  
+      } else { 
+         return;
+      }
+    },
+
+    _updateImage(data, parentElement, vmin=undefined, vmax=undefined, colormap=undefined){
+        var elID = parentElement.attr('id'); 
+        if (vmin == undefined){
+            var vmin = divIDE.panelJSData[elID].vmin;
+        }
+        if (vmax == undefined){
+            var vmax = divIDE.panelJSData[elID].vmax;
+        }
+        if (colormap == undefined){
+            var colormap = divIDE.panelJSData[elID].colormap;
+        }
+        data = divImage._colorArray(data, vmin, vmax, colormap);
+        divImage.setPanelData(parentElement,
+                             divImage._uIntArray2Bitmap(data),
+                             'imgData');
+    },
+
+    setPanelData: function(parentElement, data, key) {
+      var elID = parentElement.attr('id'); 
+      if (key == 'imgData'){
+        var img = $(parentElement).find('img');
+        img.attr('src', data);  
+      }
+      else if (key == 'imgStrArray'){
+        data = eval(data);
+        divIDE.panelJSData[elID].arrayData = data;
+        divImage._updateImage(data, parentElement);
+      }
+      else if (key == 'imgArray'){
+         divIDE.panelJSData[elID].arrayData = data;
+         data = divImage._colorArray(data);
+         divImage._updateImage(data, parentElement);
+      } else if (key == 'vmin') {
+          divIDE.panelJSData[elID].vmin = parseFloat(data);
+          divImage._updateImage(divIDE.panelJSData[elID].arrayData, parentElement);
+      } else if (key == 'vmax') {
+          divIDE.panelJSData[elID].vmax = parseFloat(data);
+          divImage._updateImage(divIDE.panelJSData[elID].arrayData, parentElement);
+      } else if (key == 'colormap') {
+          divIDE.panelJSData[elID].colormap = data;
+          divImage._updateImage(divIDE.panelJSData[elID].arrayData, parentElement);
+      }
+    }, 
+
+    init: function(elID){
+        divIDE.panelJSData[elID] = {
+            vmin: undefined,
+            vmax: undefined,
+            colormap: 'grayscale',
+            arrayData: [[1]],
+        }
+    }
+}
+
+divIDE.registerPanel(divImage);
