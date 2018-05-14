@@ -84,7 +84,8 @@ divImage = {
         'imgStrArray',
         'vmin', 
         'vmax', 
-        'colormap'
+        'colormap',
+        'equalize'
     ],
 
     _asLittleEndianHex: function (value, bytes) {
@@ -168,7 +169,7 @@ divImage = {
        return 'data:image/bmp;base64,' + btoa(file);
     },
 
-    _colorArray(data, vmin=undefined, vmax=undefined, lut='grayscale'){
+    _colorArray(data, vmin=undefined, vmax=undefined, lut='grayscale', equalize=false){
         var height = data.length,
             width = height ? data[0].length : 0,
             n_elm = width ? data[0][0].length : 1;
@@ -208,12 +209,54 @@ divImage = {
         }
         lut.setMax ( vmax + 1 * (vmax == vmin) );
         lut.setMin ( vmin );
-        
+
+        var eqData;
+        if (equalize){
+            // Create the histogram of values
+            var histogram = {};
+            var step = (vmax - vmin) / 255;
+            var val, cdf = {};
+            for (var i = 0; i < height; i++){
+                for (var j = 0; j < width; j++){
+                    val = Math.round(data[i][j] / step);
+                    if (histogram[val] == undefined){
+                        histogram[val] = 0;
+                    }
+                    histogram[val] += 1;
+                }
+            }
+            // calculate the cdf
+            var last_val = 0;
+            var cdfmin = Infinity;
+            var cdfmax = 0;
+            for (var i = 0; i < 255; i++){
+                if (histogram[i] == undefined){
+                    continue;
+                }
+                cdf[i] = histogram[i] + last_val;
+                last_val = cdf[i];
+                cdfmin = Math.min(cdf[i], cdfmin);
+                cdfmax = cdf[i];
+            }
+            // Equalize data
+            eqData = [];
+            for (var i = 0; i < height; i++){
+                eqData.push([]);
+                for (var j = 0; j < width; j++){
+                    val = Math.round(data[i][j] / step);
+                    val = (cdf[val] - cdfmin) / (cdfmax - cdfmin) * 255;
+                    eqData[i].push(val);
+                }
+            }
+        } else {
+            eqData = data;
+        }
+
         var newData = [];
         for (var i = 0; i < height; i++){
             newData.push([])
             for (var j = 0; j < width; j++){
-                var c = lut.getColor (data[i][j]);
+                var c = lut.getColor (eqData[i][j]);
                 newData[i].push([Math.round(c.r * 255),
                                  Math.round(c.g * 255),
                                  Math.round(c.b * 255)]);
@@ -231,7 +274,7 @@ divImage = {
       }
     },
 
-    _updateImage(data, parentElement, vmin=undefined, vmax=undefined, colormap=undefined){
+    _updateImage(data, parentElement, vmin=undefined, vmax=undefined, colormap=undefined, equalize=undefined){
         var elID = parentElement.attr('id'); 
         if (vmin == undefined){
             var vmin = divIDE.panelJSData[elID].vmin;
@@ -242,7 +285,10 @@ divImage = {
         if (colormap == undefined){
             var colormap = divIDE.panelJSData[elID].colormap;
         }
-        data = divImage._colorArray(data, vmin, vmax, colormap);
+        if (equalize == undefined){
+            var equalize = divIDE.panelJSData[elID].equalize;
+        }
+        data = divImage._colorArray(data, vmin, vmax, colormap, equalize);
         divImage.setPanelData(parentElement,
                              divImage._uIntArray2Bitmap(data),
                              'imgData');
@@ -271,6 +317,9 @@ divImage = {
       } else if (key == 'colormap') {
           divIDE.panelJSData[elID].colormap = data;
           divImage._updateImage(divIDE.panelJSData[elID].arrayData, parentElement);
+      } else if (key == 'equalize'){
+          divIDE.panelJSData[elID].equalize = data;
+          divImage._updateImage(divIDE.panelJSData[elID].arrayData, parentElement);
       }
     }, 
 
@@ -279,6 +328,7 @@ divImage = {
             vmin: undefined,
             vmax: undefined,
             colormap: 'grayscale',
+            equalize: false,
             arrayData: [[1]],
         }
     }
