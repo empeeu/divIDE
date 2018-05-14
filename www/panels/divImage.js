@@ -2,7 +2,20 @@ divImage = {
     name: "divImage", 
     panelHTML: function(uniqueParentElementID) {
         var html = '';
-        html += "<img src='' style='object-fit:contain;max-width:100%;max-height=100%;width=100%;height=100%;image-rendering: pixelated;'/>"
+        html += "<div \
+                 style='overflow:hidden;\
+                 width:100%;height:100%'>\
+                 <img src=''\
+                    style='object-fit:contain;max-width:100%;\
+                    max-height:100%;width:100%;height:100%;image-rendering: pixelated;\
+                    transform: matrix(1, 0, 0, 1, 0, 0);\
+                    user-drag: none; user-select: none;-moz-user-select: none;-webkit-user-drag: none;-webkit-user-select: none;-ms-user-select: none;'\
+                    onmousedown='divImage.startPan(this, event)'\
+                    onmousemove='divImage.pan(this, event)'\
+                    onmouseup='divImage.stopPan(this, event)'\
+                    onmouseout='divImage.stopPan(this, event)'\
+                    draggable=false\
+                 /></div>"
         return html;
     }, 
 /*    panelContextMenu: function(parentElement) {
@@ -11,6 +24,57 @@ divImage = {
     topMenuItems : {
         
     },*/
+    startPan(elem, event){
+        var parentElement = $(divIDE.getCtxTarget(elem));
+        var elID = parentElement.attr('id'); 
+        divIDE.panelJSData[elID].panStart = [event.clientX, event.clientY];
+    },
+
+    stopPan(elem, event){
+        var parentElement = $(divIDE.getCtxTarget(elem));
+        var elID = parentElement.attr('id'); 
+        divIDE.panelJSData[elID].panStart = undefined;
+    },
+
+    pan(elem, event){
+        var parentElement = $(divIDE.getCtxTarget(elem));
+        var elID = parentElement.attr('id'); 
+        var startPan = divIDE.panelJSData[elID].panStart;
+        if (startPan == undefined){
+            return;
+        }
+        var translate = [event.clientX - startPan[0], event.clientY - startPan[1]];
+        var matrix = $(elem).css('transform').replace('matrix(', '').replace(')', '').split(',');
+        var scale = parseFloat(matrix[0]);
+        var width = (scale - 1) * elem.width / 2;
+        var height = (scale - 1) * elem.height / 2;
+        if (event.ctrlKey)
+        {
+            var newScale;
+            if (translate[1] < -1){
+                newScale = scale * 1.1;
+                divImage.startPan(elem, event); // Restart for next round
+            } else if (translate[1] > 1) {
+                newScale = Math.max(1, scale / 1.1);
+                divImage.startPan(elem, event); // Restart for next round
+            }
+            matrix[0] = String(newScale);
+            matrix[3] = String(newScale);
+            matrix[4] = String(Math.min(width, Math.max(-width, newScale / scale * parseInt(matrix[4]))));
+            matrix[5] = String(Math.min(height, Math.max(-height, newScale / scale * parseInt(matrix[5]))));  
+            if (scale == 1){
+                matrix[4] = '0';
+                matrix[5] = '0';    
+            }
+        } else {
+            divImage.startPan(elem, event); // Restart for next round
+            matrix[4] = String(Math.min(width, Math.max(-width, parseInt(matrix[4]) + translate[0])));
+            matrix[5] = String(Math.min(height, Math.max(-height, parseInt(matrix[5]) + translate[1])));            
+        }
+//         console.log(matrix)
+        // if (matrix[0] == 1) { return; }
+        $(elem).css('transform', 'matrix(' + matrix.join(',') + ')');
+    },
 
     linkDataKeys: [
         'imgData',
@@ -114,7 +178,11 @@ divImage = {
         }
         if (typeof lut == "string"){
             var numberOfColors = 256;
-            var lut = new THREE.Lut(lut, numberOfColors);
+            if (lut in THREE.ColorMapKeywords){
+                var lut = new THREE.Lut(lut, numberOfColors);
+            } else { 
+                var lut = new THREE.Lut('grayscale', numberOfColors);
+            }
         }
         if (vmin == undefined){
             var vmin = Infinity;
