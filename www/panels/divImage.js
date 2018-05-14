@@ -4,10 +4,12 @@ divImage = {
         var html = '';
         html += "<div \
                  style='overflow:hidden;\
-                 width:100%;height:100%'>\
+                 height: fit-content;width: fit-content;\
+                 margin-top:auto;margin-bottom:auto;\
+                 margin-left: auto;margin-right: auto;'>\
                  <img src=''\
                     style='object-fit:contain;max-width:100%;\
-                    max-height:100%;width:100%;height:100%;image-rendering: pixelated;\
+                    max-height:100%;image-rendering: pixelated;\
                     transform: matrix(1, 0, 0, 1, 0, 0);\
                     user-drag: none; user-select: none;-moz-user-select: none;-webkit-user-drag: none;-webkit-user-select: none;-ms-user-select: none;'\
                     onmousedown='divImage.startPan(this, event)'\
@@ -259,7 +261,6 @@ divImage = {
       }
       else if (key == 'imgArray'){
          divIDE.panelJSData[elID].arrayData = data;
-         data = divImage._colorArray(data);
          divImage._updateImage(data, parentElement);
       } else if (key == 'vmin') {
           divIDE.panelJSData[elID].vmin = parseFloat(data);
