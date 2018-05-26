@@ -2,9 +2,10 @@ divImage = {
     name: "divImage", 
     panelHTML: function(uniqueParentElementID) {
         var html = '';
-        html += "<div \
+        html += "<!--div \
                  style='overflow:hidden;\
                  height: fit-content;width: fit-content;\
+                 width: 100%; height:100%;\
                  margin-top:auto;margin-bottom:auto;\
                  margin-left: auto;margin-right: auto;'>\
                  <img src=''\
@@ -17,8 +18,21 @@ divImage = {
                     onmouseup='divImage.stopPan(this, event)'\
                     onmouseout='divImage.stopPan(this, event)'\
                     draggable=false\
-                 /></div>"
-        return html;
+                 /></div-->\
+                 <div style='width:100%; height:100%; object-fit:contain; overflow:hidden; position:relative;\
+                        margin-top:auto;margin-bottom:auto;\
+                        margin-left: auto;margin-right: auto;'>\
+                     <canvas id='imageCanvas' style='width:100%;height:100%;object-fit:contain;image-rendering: pixelated;\
+                            transform: matrix(1, 0, 0, 1, 0, 0);\
+                            user-drag: none; user-select: none;-moz-user-select: none;-webkit-user-drag: none;-webkit-user-select: none;-ms-user-select: none;'\
+                            onmousedown='divImage.startPan(this, event)'\
+                            onmousemove='divImage.pan(this, event)'\
+                            onmouseup='divImage.stopPan(this, event)'\
+                            onmouseout='divImage.stopPan(this, event)'\
+                            draggable=false\
+                            height=3 width=3/>\
+                 </div>"
+        return html
     }, 
 /*    panelContextMenu: function(parentElement) {
         // TODO implement     
@@ -48,8 +62,8 @@ divImage = {
         var translate = [event.clientX - startPan[0], event.clientY - startPan[1]];
         var matrix = $(elem).css('transform').replace('matrix(', '').replace(')', '').split(',');
         var scale = parseFloat(matrix[0]);
-        var width = (scale - 1) * elem.width / 2;
-        var height = (scale - 1) * elem.height / 2;
+        var width = (scale - 1) * elem.clientWidth / 2;
+        var height = (scale - 1) * elem.clientHeight / 2;
         if (event.ctrlKey)
         {
             var newScale;
