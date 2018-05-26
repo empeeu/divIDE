@@ -318,23 +318,27 @@ divImage = {
         var width = data[1];
         var height = data[2];
         var elems = data[3];
-        var addTransparency = elems == 3;
         if (elems < 3){
             console.log("Need to specify at least RGB");
         }
         c.width = width;
         c.height = height;
-        var imgData = ctx.createImageData(width, height);
-        var j = 4;
-        for (var i=0; i < imgData.data.length; i++){
-            imgData.data[i] = data[j];
-            j++;
-            if (addTransparency & ((i+2)%4 == 0) ){
-                i++;
-                imgData.data[i] = 255;
-            } 
-            if (j == data.length){
-                break;
+        if (elems == 4){
+            var imgData = new ImageData(new Uint8ClampedArray(data.slice(4, width*height*4 + 4)),
+                width, height);
+        } else {
+            var imgData = ctx.createImageData(width, height);
+            var j = 4;
+            for (var i=0; i < imgData.data.length; i++){
+                imgData.data[i] = data[j];
+                j++;
+                if ((i+2)%4 == 0){
+                    i++;
+                    imgData.data[i] = 255;
+                } 
+                if (j == data.length){
+                    break;
+                }
             }
         }
         ctx.putImageData(imgData, 0, 0);
