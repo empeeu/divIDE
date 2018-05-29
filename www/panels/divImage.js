@@ -94,6 +94,7 @@ divImage = {
 
     linkDataKeys: [
         'imgData',
+        'canvasData',
         'imgArray',
         'imgStrArray',
         'vmin', 
@@ -184,13 +185,14 @@ divImage = {
     },
 
     _colorArray(data, vmin=undefined, vmax=undefined, lut='grayscale', equalize=false){
-        var height = data.length,
-            width = height ? data[0].length : 0,
-            n_elm = width ? data[0][0].length : 1;
-        if (n_elm == 3){
+        var height = data[0],
+            width = data[1],
+            n_elm = data[2];
+            dataSlice = data.slice(3, width*height+3);
+        if (n_elm == 3 | n_elm == 4){
             return data;
         }
-        if (n_elm != undefined){
+        if (n_elm != 1){
             console.log('Unsupported number of pixel elements', n_elm);
         }
         if (typeof lut == "string"){
@@ -203,21 +205,17 @@ divImage = {
         }
         if (vmin == undefined){
             var vmin = Infinity;
-            for (var i = 0; i < height; i++){
-                for (var j = 0; j < width; j++){
-                    if (data[i][j] < vmin){
-                        vmin = data[i][j];
-                    }
+            for (var i = 0; i < dataSlice.length; i++){
+                if (dataSlice[i] < vmin){
+                    vmin = dataSlice[i];                
                 }
             }
         }
         if (vmax == undefined){
             var vmax = -Infinity;
-            for (var i = 0; i < height; i++){
-                for (var j = 0; j < width; j++){
-                    if (data[i][j] > vmax){
-                        vmax = data[i][j];
-                    }
+            for (var i = 0; i < dataSlice.length; i++){
+                if (dataSlice[i] > vmax){
+                    vmax = dataSlice[i];
                 }
             }
         }
@@ -230,14 +228,12 @@ divImage = {
             var histogram = {};
             var step = (vmax - vmin) / 255;
             var val, cdf = {};
-            for (var i = 0; i < height; i++){
-                for (var j = 0; j < width; j++){
-                    val = Math.round(data[i][j] / step);
-                    if (histogram[val] == undefined){
-                        histogram[val] = 0;
-                    }
-                    histogram[val] += 1;
+            for (var i = 0; i < dataSlice.length; i++){
+                val = Math.round(dataSlice[i] / step);
+                if (histogram[val] == undefined){
+                    histogram[val] = 0;
                 }
+                histogram[val] += 1;
             }
             // calculate the cdf
             var last_val = 0;
@@ -254,30 +250,28 @@ divImage = {
             }
             // Equalize data
             eqData = [];
-            for (var i = 0; i < height; i++){
-                eqData.push([]);
-                for (var j = 0; j < width; j++){
-                    val = Math.round(data[i][j] / step);
+            for (var i = 0; i < dataSlice.length; i++){
+                    val = Math.round(dataSlice[i] / step);
                     val = (cdf[val] - cdfmin) / (cdfmax - cdfmin) * (vmax - vmin) + vmin;
                     eqData[i].push(val);
-                }
             }
         } else {
-            eqData = data;
+            eqData = dataSlice;
         }
 
-        var newData = [];
-        for (var i = 0; i < height; i++){
-            newData.push([])
-            for (var j = 0; j < width; j++){
-                var c = lut.getColor (eqData[i][j]);
-                if (c == undefined){
-                    newData[i].push([255, 255, 255]);
-                } else {
-                    newData[i].push([Math.round(c.r * 255),
-                                     Math.round(c.g * 255),
-                                     Math.round(c.b * 255)]);
-                }
+        var newData = [height, width, 4];
+        for (var i = 0; i < eqData.length; i++){
+            var c = lut.getColor (eqData[i]);
+            if (c == undefined){
+                newData.push(255);
+                newData.push(255);
+                newData.push(255);
+                newData.push(255);
+            } else {
+                newData.push(Math.round(c.r * 255));
+                newData.push(Math.round(c.g * 255));
+                newData.push(Math.round(c.b * 255));
+                newData.push(255);
             }
         }
         return newData;
@@ -290,6 +284,35 @@ divImage = {
       } else { 
          return;
       }
+    },
+
+    to1DArray: function(arr){
+        if (arr[0][0] === undefined){
+            return arr; //already 1d
+        }
+        var new1DArr = [];
+        new1DArr.push(arr.length);
+        new1DArr.push(arr[0].length);
+        var is3d = false;
+        if (arr[0][0][0] !== undefined){
+            new1DArr.push(arr[0][0].length);
+            is3d = true;
+        } else {
+            new1DArr.push(1);
+        }
+        for (var i = 0; i < new1DArr[0]; i++){
+            for (var j = 0; j < new1DArr[1]; j ++){
+                for (var k = 0; k < new1DArr[2]; k++){
+                    if (is3d){
+                        new1DArr.push(arr[i][j][k]);
+                    }
+                    else {
+                        new1DArr.push(arr[i][j]);
+                    }
+                }
+            }
+        }
+        return new1DArr;
     },
 
     _updateImage(data, parentElement, vmin=undefined, vmax=undefined, colormap=undefined, equalize=undefined){
@@ -307,28 +330,26 @@ divImage = {
             var equalize = divIDE.panelJSData[elID].equalize;
         }
         data = divImage._colorArray(data, vmin, vmax, colormap, equalize);
-        divImage.setPanelData(parentElement,
-                             divImage._uIntArray2Bitmap(data),
-                             'imgData');
+        divImage.setPanelData(parentElement, data, 'canvasData');
     },
 
     _updateCanvas: function (data, elem){
         var c = $(elem).find('canvas')[0];    
         var ctx=c.getContext("2d");
-        var width = data[1];
-        var height = data[2];
-        var elems = data[3];
+        var width = data[0];
+        var height = data[1];
+        var elems = data[2];
         if (elems < 3){
             console.log("Need to specify at least RGB");
         }
         c.width = width;
         c.height = height;
         if (elems == 4){
-            var imgData = new ImageData(new Uint8ClampedArray(data.slice(4, width*height*4 + 4)),
+            var imgData = new ImageData(new Uint8ClampedArray(data.slice(3, width*height*4 + 4)),
                 width, height);
         } else {
             var imgData = ctx.createImageData(width, height);
-            var j = 4;
+            var j = 3;
             for (var i=0; i < imgData.data.length; i++){
                 imgData.data[i] = data[j];
                 j++;
@@ -350,14 +371,19 @@ divImage = {
         var img = $(parentElement).find('img');
         img.attr('src', data);  
       }
+      else if (key == 'canvasData') {
+          divImage._updateCanvas(data, parentElement);
+      }
       else if (key == 'imgStrArray'){
         data = eval(data);
-        if (data[0][0] == undefined){
-            divImage._updateCanvas(data, parentElement);
-        } else {
+        data1d = divImage.to1DArray(data);
+        if (data1d[2] == 1){
             divIDE.panelJSData[elID].arrayData = data;
-            divImage._updateImage(data, parentElement);
+           divImage._updateImage(data1d, parentElement);
         }
+        else {
+            divImage._updateCanvas(data1d, parentElement);           
+        } 
       }
       else if (key == 'imgArray'){
          divIDE.panelJSData[elID].arrayData = data;
