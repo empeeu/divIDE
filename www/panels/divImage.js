@@ -184,7 +184,8 @@ divImage = {
        return 'data:image/bmp;base64,' + btoa(file);
     },
 
-    _colorArray(data, vmin=undefined, vmax=undefined, lut='grayscale', equalize=false){
+    _colorArray(data, parentElement, vmin=undefined, vmax=undefined, lut='grayscale', equalize=false){
+        var elID = parentElement.attr('id'); 
         var height = data[0],
             width = data[1],
             n_elm = data[2];
@@ -219,8 +220,15 @@ divImage = {
                 }
             }
         }
-        lut.setMax ( vmax + 1 * (vmax == vmin) );
-        lut.setMin ( vmin );
+        if (equalize){
+            lut.setMax(255);
+            lut.setMin(0)
+            vmax = 255;
+            vmin = 0;
+        } else {
+            lut.setMax ( vmax + 1 * (vmax == vmin) );
+            lut.setMin ( vmin );
+        }
 
         var eqData;
         if (equalize){
@@ -249,30 +257,43 @@ divImage = {
                 cdfmax = cdf[i];
             }
             // Equalize data
-            eqData = [];
+            eqData = divIDE.panelJSData[elID].eqData;
+            if (eqData === undefined || eqData.length != dataSlice.length){
+                eqData = new Uint8ClampedArray(dataSlice.length);
+                divIDE.panelJSData[elID].eqData = eqData;
+            }
             for (var i = 0; i < dataSlice.length; i++){
                     val = Math.round(dataSlice[i] / step);
                     val = (cdf[val] - cdfmin) / (cdfmax - cdfmin) * (vmax - vmin) + vmin;
-                    eqData[i].push(val);
+                    eqData[i] = val;
             }
         } else {
             eqData = dataSlice;
         }
+        var newData = divIDE.panelJSData[elID].newColData;
+        if (newData === undefined || newData.length != (3+height*width*4)){
+            newData = new Uint16Array(3+height*width*4);
+            divIDE.panelJSData[elID].newColData = newData;
+        }
 
-        var newData = [height, width, 4];
-        for (var i = 0; i < eqData.length; i++){
+        newData[0] = height
+        newData[1] = width
+        newData[2] = 4;
+        var j = 3;
+        for (var i = 0; i < height*width; i++){
             var c = lut.getColor (eqData[i]);
             if (c == undefined){
-                newData.push(255);
-                newData.push(255);
-                newData.push(255);
-                newData.push(255);
+                newData[j+0] = 255;
+                newData[j+1] = 255;
+                newData[j+2] = 255;
+                newData[j+3] = 255;
             } else {
-                newData.push(Math.round(c.r * 255));
-                newData.push(Math.round(c.g * 255));
-                newData.push(Math.round(c.b * 255));
-                newData.push(255);
+                newData[j+0] = Math.round(c.r * 255);
+                newData[j+1] = Math.round(c.g * 255);
+                newData[j+2] = Math.round(c.b * 255);
+                newData[j+3] = 255;
             }
+            j += 4;
         }
         return newData;
     },
@@ -329,7 +350,7 @@ divImage = {
         if (equalize == undefined){
             var equalize = divIDE.panelJSData[elID].equalize;
         }
-        data = divImage._colorArray(data, vmin, vmax, colormap, equalize);
+        data = divImage._colorArray(data, parentElement, vmin, vmax, colormap, equalize);
         divImage.setPanelData(parentElement, data, 'canvasData');
     },
 
